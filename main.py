@@ -1,4 +1,5 @@
 import typer
+from remove_duplicate_files import remove_duplicate_files
 
 
 app = typer.Typer()
@@ -10,12 +11,9 @@ def hello(name: str):
 
 
 @app.command()
-def goodbye(name: str, formal: bool = False):
-    if formal:
-        typer.echo(f"Goodbye, {name}")
-    else:
-        typer.echo(f"Bye {name}")
-
+def duplicates(dir_path: str, autodelete: bool = False):
+    remove_duplicate_files(dir_path, autodelete)
+    typer.echo(f"Duplicate files removed from {dir_path}")
 
 if __name__ == "__main__":
     app()
