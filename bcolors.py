@@ -53,5 +53,20 @@ class bcolors:
     CBEIGEBG2 = "\33[106m"
     CWHITEBG2 = "\33[107m"
 
-    def print_colored(text, color):
-        print(f"{color}{text}{bcolors.CEND}")
+def print_colored(text, color):
+    print(f"{color}{text}{bcolors.CEND}")
+
+def print_header(text):
+    print(f"{bcolors.HEADER}{text}{bcolors.CEND}")
+
+def print_error(text):
+    print(f"{bcolors.FAIL}ERROR: {text}{bcolors.CEND}")
+
+def print_warning(text):
+    print(f"{bcolors.WARNING}WARNING: {text}{bcolors.CEND}")
+
+def print_success(text):
+    print(f"{bcolors.OKGREEN}SUCCESS: {text}{bcolors.CEND}")
+
+def print_info(text):
+    print(f">>> {bcolors.OKBLUE}{text}{bcolors.CEND}")
