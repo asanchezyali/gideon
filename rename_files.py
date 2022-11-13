@@ -3,22 +3,23 @@ import signal
 import subprocess
 from dir_walker import dir_walker
 from bcolors import print_info, print_header, print_success
+import time
 
 
 def get_intent(dir_path, file, extension):
     rename = str(input("Rename? [yes/no/delete/exit] ")).lower()
-    while rename not in ["yes", "no", "delete", "exit"]:
+    while rename not in ["yes", "y", "no", "n", "delete", "exit"]:
         rename = str(input("Rename? [yes/no/delete/exit] ")).lower()
-    if rename == "yes":
+    if rename == "yes" or rename == "y":
         new_name = input("New name?: ")
         if not new_name.endswith(extension):
             new_name += extension
         os.rename(file, os.path.join(dir_path, new_name))
     elif rename == "delete":
         sure = str(input("Are you sure? [yes/no] ")).lower()
-        while sure not in ["yes", "no"]:
+        while sure not in ["yes", "y", "no", "n"]:
             sure = str(input("Are you sure? [yes/no] ")).lower()
-        if sure == "yes":
+        if sure == "yes" or sure == "y":
             os.remove(file)
     elif rename == "exit":
         return False
@@ -34,6 +35,8 @@ def rename_files(dir_path):
         process = subprocess.Popen(
             ["xdg-open", file], stdout=subprocess.PIPE, preexec_fn=os.setsid
         )
+        time.sleep(0.1)
+        subprocess.Popen(["xdotool", "click", "1"])
         intent = get_intent(dir_path, file, extension)
         if not intent:
             os.killpg(os.getpgid(process.pid), signal.SIGTERM)
