@@ -21,6 +21,7 @@ def get_intent(dir_path, file, extension):
             os.remove(file)
     elif rename == "exit":
         return False
+    return True
 
 
 def rename_files(dir_path):
