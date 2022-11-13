@@ -13,8 +13,10 @@ def remove_duplicate_files(dir_path, auto_delete=False):
                 os.remove(file)
             else:
                 print(f"Duplicate file: {file}")
-                input("Remove? [yes/no] ")
-                if input() == "yes":
+                intent = str(input("Remove? [yes/no] ")).lower()
+                while intent not in ["yes", "no"]:
+                    intent = input("Remove? [yes/no] ")
+                if intent == "yes":
                     os.remove(file)
         else:
             seen.add(file_hash)
