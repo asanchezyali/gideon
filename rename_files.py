@@ -1,6 +1,7 @@
 import os
-from dir_walker import dir_walker
+import signal
 import subprocess
+from dir_walker import dir_walker
 from bcolors import bcolors
 
 
@@ -29,21 +30,20 @@ def rename_files(dir_path):
     for file in dir_walker(dir_path):
         file_name = os.path.basename(file)
         extension = os.path.splitext(file_name)[1]
-        bcolors.print_colored(f"Renaming file: {file_name}", bcolors.CYELLOW)
-        bcolors.print_colored("#" * 50, bcolors.CBLUE)
+        bcolors.print_colored(f">>> Renaming file: {file_name}", bcolors.CYELLOW)
         if extension == ".pdf":
-            process = subprocess.Popen(["xdg-open", file], stdout=subprocess.PIPE)
+            process = subprocess.Popen(["xdg-open", file], stdout=subprocess.PIPE, preexec_fn=os.setsid)
             intent = get_intent(dir_path, file, extension)
             if not intent:
                 break
-            process.kill()
+            os.killpg(os.getpgid(process.pid), signal.SIGTERM)
 
         if extension in [".png", ".jpg", ".jpeg"]:
-            process = subprocess.Popen(["xdg-open", file], stdout=subprocess.PIPE)
+            process = subprocess.Popen(["xdg-open", file], stdout=subprocess.PIPE, preexec_fn=os.setsid)
             intent = get_intent(dir_path, file, extension)
             if not intent:
                 break
-            process.kill()
+            os.killpg(os.getpgid(process.pid), signal.SIGTERM)
 
 
 if __name__ == "__main__":
