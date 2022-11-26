@@ -3,7 +3,8 @@ import signal
 import subprocess
 from dir_walker import dir_walker
 from bcolors import print_info, print_header, print_success
-import time
+from rename_article_or_book import rename_article_or_book
+from rename_invoice_or_report import rename_invoice_or_report
 
 
 def get_intent(dir_path, file, extension):
@@ -11,10 +12,25 @@ def get_intent(dir_path, file, extension):
     while rename not in ["yes", "y", "no", "n", "delete", "exit"]:
         rename = str(input("Rename? [yes/no/delete/exit] ")).lower()
     if rename == "yes" or rename == "y":
-        new_name = input("New name?: ")
-        if not new_name.endswith(extension):
-            new_name += extension
-        os.rename(file, os.path.join(dir_path, new_name))
+        doc_type = str(
+            input(
+                "Article or book or invoice or report? [article/book/invoice/report] "
+            )
+        ).lower()
+        while doc_type not in ["article", "book", "invoice", "report"]:
+            doc_type = str(
+                input(
+                    "Article or book or invoice or report? [article/book/invoice/report] "
+                )
+            ).lower()
+        if doc_type == "article" or doc_type == "book":
+            renamed = rename_article_or_book(dir_path, file, extension)
+            while not renamed:
+                renamed = rename_article_or_book(dir_path, file, extension)
+        elif doc_type == "invoice" or doc_type == "report":
+            renamed = rename_invoice_or_report(dir_path, file, extension)
+            while not renamed:
+                renamed = rename_invoice_or_report(dir_path, file, extension)
     elif rename == "delete":
         sure = str(input("Are you sure? [yes/no] ")).lower()
         while sure not in ["yes", "y", "no", "n"]:
@@ -35,8 +51,6 @@ def rename_files(dir_path):
         process = subprocess.Popen(
             ["xdg-open", file], stdout=subprocess.PIPE, preexec_fn=os.setsid
         )
-        time.sleep(0.1)
-        subprocess.Popen(["xdotool", "click", "1"])
         intent = get_intent(dir_path, file, extension)
         if not intent:
             os.killpg(os.getpgid(process.pid), signal.SIGTERM)
