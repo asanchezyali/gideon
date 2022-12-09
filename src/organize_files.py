@@ -6,7 +6,7 @@ import signal
 import subprocess
 from src.dir_walker import dir_walker
 from src.filename_formats import invoice_validator, article_validator
-from bcolors import print_info
+from utils.bcolors import print_info
 
 
 def organize_files(dir_input, dir_output):

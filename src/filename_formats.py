@@ -1,4 +1,4 @@
-from bcolors import print_info, print_error
+from utils.bcolors import print_info, print_error
 
 invoice_or_report = "%Y_%m_%d.CompanyName.invoice_or_report.pdf"
 article_or_book = "AuthorName.Year.Title.topic.article_or_book.pdf"

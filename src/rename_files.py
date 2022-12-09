@@ -2,7 +2,7 @@ import os
 import signal
 import subprocess
 from src.dir_walker import dir_walker
-from bcolors import print_info, print_header, print_success
+from utils.bcolors import print_info, print_header, print_success
 from src.rename_article_or_book import rename_article_or_book
 from src.rename_invoice_or_report import rename_invoice_or_report
 from src.filename_formats import invoice_validator, article_validator
