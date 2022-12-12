@@ -4,7 +4,6 @@ from src.filename_formats import validate_author
 from src.filename_formats import validate_year
 from src.filename_formats import validate_title
 from src.filename_formats import validate_topic
-from src.filename_formats import validate_article_or_book
 
 
 def rename_article_or_book(doc_type, file, extension):

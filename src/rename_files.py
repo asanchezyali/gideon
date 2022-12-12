@@ -4,7 +4,7 @@ import subprocess
 from src.dir_walker import dir_walker
 from utils.bcolors import print_info, print_header, print_success
 from src.rename_article_or_book import rename_article_or_book
-from src.rename_invoice_or_report import rename_invoice_or_report
+from src.rename_invoice_or_report import rename_invoice_or_report_contract
 from src.filename_formats import invoice_validator, article_validator
 
 
@@ -15,23 +15,23 @@ def get_intent(dir_path, file, extension):
     if rename == "yes" or rename == "y":
         doc_type = str(
             input(
-                "Article or book or invoice or report? [article/book/invoice/report] "
+                "Article or book or invoice or report or contract? [article/book/invoice/report/contract] "
             )
         ).lower()
-        while doc_type not in ["article", "book", "invoice", "report"]:
+        while doc_type not in ["article", "book", "invoice", "report", "contract"]:
             doc_type = str(
                 input(
-                    "Article or book or invoice or report? [article/book/invoice/report] "
+                    "Article or book or invoice or report or contract? [article/book/invoice/report/contract] "
                 )
             ).lower()
         if doc_type == "article" or doc_type == "book":
             renamed = rename_article_or_book(doc_type, file, extension)
             while not renamed:
                 renamed = rename_article_or_book(doc_type, file, extension)
-        elif doc_type == "invoice" or doc_type == "report":
-            renamed = rename_invoice_or_report(doc_type, file, extension)
+        elif doc_type == "invoice" or doc_type == "report" or doc_type == "contract":
+            renamed = rename_invoice_or_report_contract(doc_type, file, extension)
             while not renamed:
-                renamed = rename_invoice_or_report(doc_type, file, extension)
+                renamed = rename_invoice_or_report_contract(doc_type, file, extension)
     elif rename == "delete":
         sure = str(input("Are you sure? [yes/no] ")).lower()
         while sure not in ["yes", "y", "no", "n"]:

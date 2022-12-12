@@ -2,9 +2,8 @@ import os
 from pathlib import Path
 from src.filename_formats import validate_date
 from src.filename_formats import validate_company_name
-from src.filename_formats import validate_invoice_or_report
 
-def rename_invoice_or_report(doc_type, file, extension):
+def rename_invoice_or_report_contract(doc_type, file, extension):
     date = str(input("Date: "))
     while not validate_date(date):
         date = str(input("Date: "))

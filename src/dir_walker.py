@@ -5,7 +5,9 @@ import sys
 def dir_walker(dir_path):
     for root, _, files in os.walk(dir_path):
         for file in files:
-            yield os.path.join(root, file)
+            # filter by pdf files
+            if file.endswith(".pdf"):
+                yield os.path.join(root, file)
 
 
 if __name__ == "__main__":

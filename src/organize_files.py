@@ -1,4 +1,5 @@
 import os
+import shutil
 import hashlib
 from pathlib import Path
 import json
@@ -50,7 +51,9 @@ def organize_files(dir_input, dir_output):
                 )
                 print_info(f"Moving {file} to {new_dir}")
                 new_dir.mkdir(parents=True, exist_ok=True)
-                os.rename(file, os.path.join(new_dir, filename))
+                ## os.rename(file, os.path.join(new_dir, filename))
+                shutil.copy(file, os.path.join(new_dir, filename))
+                os.remove(file)
                 file_hashes[file_hash] = os.path.join(new_dir, filename)
                 with open(file_hash_path, "w") as f:
                     json.dump(file_hashes, f)
@@ -61,7 +64,9 @@ def organize_files(dir_input, dir_output):
                 )
                 print_info(f"Moving {file} to {new_dir}")
                 new_dir.mkdir(parents=True, exist_ok=True)
-                os.rename(file, os.path.join(new_dir, filename))
+                ## os.rename(file, os.path.join(new_dir, filename))
+                shutil.copy(file, os.path.join(new_dir, filename))
+                os.remove(file)
                 file_hashes[file_hash] = os.path.join(new_dir, filename)
                 with open(file_hash_path, "w") as f:
                     json.dump(file_hashes, f)

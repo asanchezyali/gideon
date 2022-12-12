@@ -38,6 +38,8 @@ COMPANY_NAMES = [
     "CONSTRUCASAS",
     "CONSTRUCASAS_BCSC",
     "CONSTRUCASAS_BANCOLOMBIA",
+    "SIIGO",
+    "DIAN",
 ]
 
 
@@ -106,7 +108,7 @@ def invoice_validator(filename):
         if not validate_company_name(company):
             print_error(f"{company} is not a valid company name")
             return False
-        if not validate_invoice_or_report(invoice_or_report):
+        if not validate_invoice_or_report_contract(invoice_or_report):
             print_error(f"{invoice_or_report} is not a valid invoice or report")
             return False
         if extension != "pdf":
@@ -178,10 +180,10 @@ def validate_company_name(company_name):
     return True
 
 
-def validate_invoice_or_report(invoice_or_report):
-    if invoice_or_report not in ["invoice", "report"]:
-        print_error(f"{invoice_or_report} is not a valid invoice or report")
-        print_info(f"Expected format: invoice or report")
+def validate_invoice_or_report_contract(invoice_or_report_contract):
+    if invoice_or_report_contract not in ["invoice", "report", "contract"]:
+        print_error(f"{invoice_or_report_contract} is not a valid invoice or report")
+        print_info(f"Expected format: invoice or report or contract")
         return False
     return True
 
