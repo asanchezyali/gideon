@@ -8,7 +8,7 @@ from src.rename_invoice_or_report import rename_invoice_or_report_contract
 from src.filename_formats import invoice_validator, article_validator
 
 
-def get_intent(dir_path, file, extension):
+def get_intent(file, extension):
     rename = str(input("Rename? [yes/no/delete/exit] ")).lower()
     while rename not in ["yes", "y", "no", "n", "delete", "exit"]:
         rename = str(input("Rename? [yes/no/delete/exit] ")).lower()
@@ -54,7 +54,7 @@ def rename_files(dir_path):
         process = subprocess.Popen(
             ["xdg-open", file], stdout=subprocess.PIPE, preexec_fn=os.setsid
         )
-        intent = get_intent(dir_path, file, extension)
+        intent = get_intent(file, extension)
         if not intent:
             os.killpg(os.getpgid(process.pid), signal.SIGTERM)
             print_info("Exiting...")
