@@ -8,6 +8,10 @@ def dir_walker(dir_path):
             # filter by pdf files
             if file.endswith(".pdf"):
                 yield os.path.join(root, file)
+            
+            if file.endswith(".txt"):
+                yield os.path.join(root, file)
+
 
 
 if __name__ == "__main__":

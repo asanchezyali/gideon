@@ -1,13 +1,17 @@
 import typer
+import os
+
 from src.remove_duplicate_files import remove_duplicate_files
 from src.rename_files import rename_files
 from src.organize_files import organize_files
 
 app = typer.Typer()
-
+os.chdir("..")
+non_categorized_info = os.path.join(os.getcwd(), "NonCategorizedInfo")
+categorized_info = os.path.join(os.getcwd(), "CategorizedInfo")
 
 @app.command()
-def duplicates(dir_path: str = "/home/alejandrosy/Downloads", autodelete: bool = False):
+def duplicates(auto_delete: bool = False):
     """
     Finds duplicate files in a given directory and optionally deletes them.
 
@@ -16,14 +20,15 @@ def duplicates(dir_path: str = "/home/alejandrosy/Downloads", autodelete: bool =
         autodelete (bool): Whether to automatically delete the duplicate files.
             Defaults to False.
     """
+
     try:
-        remove_duplicate_files(dir_path, autodelete)
+        remove_duplicate_files(non_categorized_info, auto_delete)
     except Exception as e:
         typer.echo("An error occurred: ", e)
 
 
 @app.command()
-def rename(dir_path: str = "/home/alejandrosy/Downloads"):
+def rename():
     """
     Renames files in a given directory based on their file extension.
 
@@ -31,13 +36,13 @@ def rename(dir_path: str = "/home/alejandrosy/Downloads"):
         dir_path (str): The path to the directory to rename files in.
     """
     try:
-        rename_files(dir_path)
+        rename_files(non_categorized_info)
     except Exception as e:
         typer.echo("An error occurred: ", e)
 
 
 @app.command()
-def organize(dir_input: str = "/home/alejandrosy/Downloads", dir_output: str = "/run/media/alejandrosy/Own/Documentos/Own"):
+def organize():
     """
     Organizes files in a given directory into subdirectories based on their file
     extension.
@@ -47,7 +52,7 @@ def organize(dir_input: str = "/home/alejandrosy/Downloads", dir_output: str = "
         dir_output (str): The path to the directory to output the organized files
     """
     try:
-        organize_files(dir_input, dir_output)
+        organize_files(non_categorized_info, categorized_info)
     except Exception as e:
         typer.echo("An error occurred: ", e)
 

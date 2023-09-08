@@ -40,6 +40,8 @@ COMPANY_NAMES = [
     "CONSTRUCASAS_BANCOLOMBIA",
     "SIIGO",
     "DIAN",
+    "SURAMERICANA",
+    "ACCIONESYVALORES",
 ]
 
 
@@ -89,6 +91,7 @@ TOPICS = [
     "dance",
     "literature",
     "religion",
+    "blockchain",
     "other",
 ]
 
@@ -144,8 +147,8 @@ def article_validator(filename):
         if not validate_article_or_book(doc_type):
             print_error(f"{doc_type} is not a valid type")
             return False
-        if extension != "pdf":
-            print_error(f"{filename} extension is not pdf")
+        if extension not in ["pdf", "txt"]:
+            print_error(f"{filename} extension is not pdf or txt")
             return False
         return True
     except Exception as e:
