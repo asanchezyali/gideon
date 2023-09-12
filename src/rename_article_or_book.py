@@ -4,9 +4,10 @@ from src.filename_formats import validate_author
 from src.filename_formats import validate_year
 from src.filename_formats import validate_title
 from src.filename_formats import validate_topic
+from src.constants import ARTICLE, BOOK, THESIS, COMMERCIAL_DOCUMENT, LEGAL_DOCUMENT, SCRIPT, NON_DISCLOSURE_AGREEMENT
 
 
-def rename_article_or_book(doc_type, file, extension):
+def rename_file(doc_type, file, extension):
     author = str(input("Author: "))
     while not validate_author(author):
         author = str(input("Author: "))
@@ -35,6 +36,15 @@ def rename_article_or_book(doc_type, file, extension):
         return True
         
     return False
+
+def rename_article(file, extension):
+    return rename_file(ARTICLE, file, extension)
+
+def rename_book(file, extension):
+    return rename_file(BOOK, file, extension)
+
+def rename_thesis(file, extension):
+    return rename_file(THESIS, file, extension)
 
 
 
