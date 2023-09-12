@@ -1,0 +1,7 @@
+ARTICLE = "articles"
+BOOK = "books"
+THESIS = "theses"
+COMMERCIAL_DOCUMENT = "commercial_documents"
+LEGAL_DOCUMENT = "legal_documents"
+SCRIPT = "scripts"
+NON_DISCLOSURE_AGREEMENT = "nda"
