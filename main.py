@@ -2,7 +2,7 @@ import typer
 import os
 
 from src.remove_duplicate_files import remove_duplicate_files
-from src.rename_files import rename_files
+from src.rename_files import rename_all_files
 from src.organize_files import organize_files
 
 app = typer.Typer()
@@ -36,7 +36,7 @@ def rename():
         dir_path (str): The path to the directory to rename files in.
     """
     try:
-        rename_files(non_categorized_info)
+        rename_all_files(non_categorized_info)
     except Exception as e:
         typer.echo("An error occurred: ", e)
 

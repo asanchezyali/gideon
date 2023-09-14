@@ -46,54 +46,28 @@ COMPANY_NAMES = [
 
 
 TOPICS = [
-    "math",
-    "topology",
-    "algebra",
-    "geometry",
+    "mathematics",
+    "topology_geometry",
+    "algebra_number_theory",
     "analysis",
-    "number_theory",
-    "combinatorics",
-    "logic",
-    "set_theory",
-    "probability",
-    "graph_theory",
-    "linear_algebra",
-    "complex_analysis",
-    "differential_equations",
-    "statistics",
-    "functional_analysis",
-    "numerical_analysis",
-    "algorithms",
-    "machine_learning",
-    "artificial_intelligence",
-    "deep_learning",
-    "data_science",
-    "physics",
-    "chemistry",
-    "biology",
+    "set_theory_logic",
+    "probability_statistics",
     "computer_science",
-    "economics",
-    "finance",
-    "statistics",
-    "psychology",
-    "sociology",
-    "philosophy",
-    "history",
-    "geography",
-    "politics",
-    "law",
+    "machine_learning_AI",
+    "physical_sciences",
+    "biological_sciences",
+    "social_sciences",
+    "economics_finance",
+    "psychology_sociology",
+    "humanities",
+    "arts",
     "engineering",
-    "medicine",
-    "architecture",
-    "art",
-    "music",
-    "theater",
-    "dance",
-    "literature",
-    "religion",
+    "business",
+    "health",
     "blockchain",
     "other",
 ]
+
 
 
 def invoice_validator(filename):
@@ -192,9 +166,9 @@ def validate_invoice_or_report_contract(invoice_or_report_contract):
 
 
 def validate_author(author):
-    if len(author.split(" ")) > 3:
+    if len(author.split(" ")) > 4:
         print_error(f"{author} is not a valid author")
-        print_info(f"Expected format: at least 3 names")
+        print_info(f"Expected format: at least 4 words for author")
         return False
     return True
 
@@ -209,7 +183,7 @@ def validate_year(year):
 def validate_title(title):
     if len(title.split(" ")) > 10:
         print_error(f"{title} is not a valid title")
-        print_info(f"Expected format: at least 10 characters")
+        print_info(f"Expected format: at least 10 words for title")
         return False
     return True
 
