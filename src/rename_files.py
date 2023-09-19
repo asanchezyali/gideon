@@ -18,14 +18,20 @@ actions = {
     DocType.THESIS: rename_thesis,
 }
 
+exclude_project_dir = "_project"
+
+
 def validate_article(filename):
     return True
+
 
 def validate_book(filename):
     return True
 
+
 def validate_thesis(filename):
     return True
+
 
 validators = {
     DocType.ARTICLE: validate_article,
@@ -101,7 +107,7 @@ def delete_file(file):
 
 def rename_all_files(dir_path):
     print_header("Starting rename files...")
-    for file in dir_walker(dir_path):
+    for file in dir_walker(dir_path, dir_excludes=[exclude_project_dir]):
         filename = get_filename(file)
         if contains_document_type(filename):
             continue

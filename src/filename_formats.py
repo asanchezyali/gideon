@@ -45,30 +45,6 @@ COMPANY_NAMES = [
 ]
 
 
-TOPICS = [
-    "mathematics",
-    "topology_geometry",
-    "algebra_number_theory",
-    "analysis",
-    "set_theory_logic",
-    "probability_statistics",
-    "computer_science",
-    "machine_learning_AI",
-    "physical_sciences",
-    "biological_sciences",
-    "social_sciences",
-    "economics_finance",
-    "psychology_sociology",
-    "humanities",
-    "arts",
-    "engineering",
-    "business",
-    "health",
-    "blockchain",
-    "other",
-]
-
-
 
 def invoice_validator(filename):
     try:
@@ -130,23 +106,6 @@ def article_validator(filename):
         return False
 
 
-def validate_date(date):
-    chunks = date.split("_")
-    if len(chunks) != 3:
-        print_error(f"{date} is not a valid date")
-        return False
-    year, month, day = chunks
-    if len(year) != 4:
-        print_error(f"{year} is not a valid year")
-        return False
-    if month not in MONTHS:
-        print_error(f"{month} is not a valid month")
-        print_info(f"Expected format: {MONTHS}")
-        return False
-    if len(day) != 2:
-        print_error(f"{day} is not a valid day")
-        return False
-    return True
 
 
 def validate_company_name(company_name):
@@ -165,27 +124,11 @@ def validate_invoice_or_report_contract(invoice_or_report_contract):
     return True
 
 
-def validate_author(author):
-    if len(author.split(" ")) > 4:
-        print_error(f"{author} is not a valid author")
-        print_info(f"Expected format: at least 4 words for author")
-        return False
-    return True
 
 
-def validate_year(year):
-    if len(year) != 4:
-        print_error(f"{year} is not a valid year")
-        return False
-    return True
 
 
-def validate_title(title):
-    if len(title.split(" ")) > 10:
-        print_error(f"{title} is not a valid title")
-        print_info(f"Expected format: at least 10 words for title")
-        return False
-    return True
+
 
 
 def validate_topic(topic):

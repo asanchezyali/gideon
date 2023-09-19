@@ -1,22 +1,31 @@
 class DocType: 
-    ARTICLE = "articles"
-    BOOK = "books"
+    ARTICLE = "art"
+    BOOK = "book"
     THESIS = "theses"
-    COMMERCIAL_DOCUMENT = "commercial_documents"
-    LEGAL_DOCUMENT = "legal_documents"
-    SCRIPT = "scripts"
+    COMMERCIAL_DOCUMENT = "commdoc"
+    LEGAL_DOCUMENT = "legaldoc"
     NON_DISCLOSURE_AGREEMENT = "nda"
+    SCRIPT = "scripts"
+    DOCS = {
+        ARTICLE: "articles",
+        BOOK: "books",
+        THESIS: "theses",
+        COMMERCIAL_DOCUMENT: "commercial documents",
+        LEGAL_DOCUMENT: "legal documents",
+        SCRIPT: "scripts",
+        NON_DISCLOSURE_AGREEMENT: "nda",
+    }
 
     @staticmethod
     def get_all():
         return [
-            DocType.ARTICLE,
-            DocType.BOOK,
-            DocType.THESIS,
-            DocType.COMMERCIAL_DOCUMENT,
-            DocType.LEGAL_DOCUMENT,
-            DocType.SCRIPT,
-            DocType.NON_DISCLOSURE_AGREEMENT,
+            DocType.DOCS[DocType.ARTICLE],
+            DocType.DOCS[DocType.BOOK],
+            DocType.DOCS[DocType.THESIS],
+            DocType.DOCS[DocType.COMMERCIAL_DOCUMENT],
+            DocType.DOCS[DocType.LEGAL_DOCUMENT],
+            DocType.DOCS[DocType.SCRIPT],
+            DocType.DOCS[DocType.NON_DISCLOSURE_AGREEMENT],
         ]
     
     @staticmethod
@@ -46,3 +55,17 @@ TOPICS = {
     "Othr": "Other",
 }
 
+MONTHS = [
+    "jan",
+    "feb",
+    "mar",
+    "apr",
+    "may",
+    "jun",
+    "jul",
+    "aug",
+    "sep",
+    "oct",
+    "nov",
+    "dec",
+]
