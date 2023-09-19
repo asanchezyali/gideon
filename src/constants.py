@@ -1,11 +1,12 @@
 class DocType: 
-    ARTICLE = "art"
-    BOOK = "book"
-    THESIS = "theses"
-    COMMERCIAL_DOCUMENT = "commdoc"
-    LEGAL_DOCUMENT = "legaldoc"
-    NON_DISCLOSURE_AGREEMENT = "nda"
-    SCRIPT = "scripts"
+    ARTICLE = "Art"
+    BOOK = "Book"
+    THESIS = "Theses"
+    COMMERCIAL_DOCUMENT = "CommDoc"
+    LEGAL_DOCUMENT = "LegalDoc"
+    NON_DISCLOSURE_AGREEMENT = "NDA"
+    SCRIPT = "Scripts"
+
     DOCS = {
         ARTICLE: "articles",
         BOOK: "books",
@@ -17,19 +18,11 @@ class DocType:
     }
 
     @staticmethod
-    def get_all():
-        return [
-            DocType.DOCS[DocType.ARTICLE],
-            DocType.DOCS[DocType.BOOK],
-            DocType.DOCS[DocType.THESIS],
-            DocType.DOCS[DocType.COMMERCIAL_DOCUMENT],
-            DocType.DOCS[DocType.LEGAL_DOCUMENT],
-            DocType.DOCS[DocType.SCRIPT],
-            DocType.DOCS[DocType.NON_DISCLOSURE_AGREEMENT],
-        ]
+    def get_all(cls):
+        return list(cls.DOCS.values())
     
     @staticmethod
-    def total_types():
+    def total_types(cls):
         return len(DocType.get_all())
 
 TOPICS = {
