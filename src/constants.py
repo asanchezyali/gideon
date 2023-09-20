@@ -1,4 +1,4 @@
-class DocType: 
+class DocType:
     ARTICLE = "Art"
     BOOK = "Book"
     THESIS = "Theses"
@@ -7,23 +7,34 @@ class DocType:
     NON_DISCLOSURE_AGREEMENT = "NDA"
     SCRIPT = "Scripts"
 
-    DOCS = {
-        ARTICLE: "articles",
-        BOOK: "books",
-        THESIS: "theses",
-        COMMERCIAL_DOCUMENT: "commercial documents",
-        LEGAL_DOCUMENT: "legal documents",
-        SCRIPT: "scripts",
-        NON_DISCLOSURE_AGREEMENT: "nda",
-    }
+    @staticmethod
+    def get_type_docs():
+        docs = {
+            DocType.ARTICLE: "articles",
+            DocType.BOOK: "books",
+            DocType.THESIS: "theses",
+            DocType.COMMERCIAL_DOCUMENT: "commercial documents",
+            DocType.LEGAL_DOCUMENT: "legal documents",
+            DocType.SCRIPT: "scripts",
+            DocType.NON_DISCLOSURE_AGREEMENT: "nda",
+        }
+        return list(docs.values())
+
+    def get_type_ext_docs():
+        return [
+            DocType.ARTICLE,
+            DocType.BOOK,
+            DocType.THESIS,
+            DocType.COMMERCIAL_DOCUMENT,
+            DocType.LEGAL_DOCUMENT,
+            DocType.SCRIPT,
+            DocType.NON_DISCLOSURE_AGREEMENT,
+        ]
 
     @staticmethod
-    def get_all(cls):
-        return list(cls.DOCS.values())
-    
-    @staticmethod
-    def total_types(cls):
-        return len(DocType.get_all())
+    def total_types():
+        return len(DocType.get_type_docs())
+
 
 TOPICS = {
     "Math": "Mathematics",
@@ -32,6 +43,10 @@ TOPICS = {
     "Anal": "Analysis",
     "SetLog": "Set Theory and Logic",
     "ProbStat": "Probability and Statistics",
+    "Graph": "Graph Theory",
+    "DiffEq": "Differential Equations",
+    "LinAlg": "Linear Algebra",
+    "Crypto": "Cryptography",
     "CompSci": "Computer Science",
     "MLAI": "Machine Learning and AI",
     "Phys": "Physical Sciences",

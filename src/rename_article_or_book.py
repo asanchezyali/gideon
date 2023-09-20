@@ -5,7 +5,7 @@ from src.validators import validate_year
 from src.validators import validate_title
 from src.validators import validate_date
 from src.constants import DocType, TOPICS
-from utils.bcolors import print_header
+from utils.bcolors import print_header, print_info
 
 
 def add_author_to_filename():
@@ -46,7 +46,7 @@ def add_topic_to_filename():
     topics = list(TOPICS.keys())
     topics_length = len(TOPICS.keys())
     for i in range(topics_length):
-        print(f"{i + 1}. {TOPICS[topics[i]]}")
+        print_info(f"{i + 1}. {TOPICS[topics[i]]}")
     option = int(input("Option: "))
     while option not in range(1, topics_length + 1):
         option = int(input("Option: "))

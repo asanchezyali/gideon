@@ -8,6 +8,9 @@ from src.rename_article_or_book import (
     rename_article,
     rename_book,
     rename_thesis,
+    rename_commercial_document,
+    rename_legal_document,
+    rename_nda,
 )
 
 from src.constants import DocType
@@ -16,6 +19,9 @@ actions = {
     DocType.ARTICLE: rename_article,
     DocType.BOOK: rename_book,
     DocType.THESIS: rename_thesis,
+    DocType.COMMERCIAL_DOCUMENT: rename_commercial_document,
+    DocType.LEGAL_DOCUMENT: rename_legal_document,
+    DocType.NON_DISCLOSURE_AGREEMENT: rename_nda,
 }
 
 exclude_project_dir = "_project"
@@ -37,11 +43,14 @@ validators = {
     DocType.ARTICLE: validate_article,
     DocType.BOOK: validate_book,
     DocType.THESIS: validate_thesis,
+    DocType.COMMERCIAL_DOCUMENT: lambda x: True,
+    DocType.LEGAL_DOCUMENT: lambda x: True,
+    DocType.NON_DISCLOSURE_AGREEMENT: lambda x: True,
 }
 
 
 def contains_document_type(filename):
-    for doc_type in DocType.get_all():
+    for doc_type in DocType.get_type_ext_docs():
         if "." + doc_type + "." in filename:
             # Add validation for the rest of the filename
             validated = validators[doc_type](filename)
@@ -54,7 +63,7 @@ def get_filename(file):
 
 
 def set_filename(option, file, filename):
-    return actions[DocType.get_all()[option - 1]](file, get_extension(filename))
+    return actions[DocType.get_type_ext_docs()[option - 1]](file, get_extension(filename))
 
 
 def get_extension(filename):
@@ -92,7 +101,7 @@ def close_file(process):
 def show_options(filename):
     print_header(f"Select an document type for {filename}:")
     for i in range(DocType.total_types()):
-        print_info(f"{i + 1}. {DocType.get_all()[i]}")
+        print_info(f"{i + 1}. {DocType.get_type_docs()[i]}")
     print_info(f"{DocType.total_types()+1}. Delete file")
     print_info(f"{DocType.total_types()+2}. Exit")
 
