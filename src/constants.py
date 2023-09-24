@@ -1,3 +1,4 @@
+EXCLUDE_PROJECT_DIR = "_project"
 class DocType:
     ARTICLE = "Art"
     BOOK = "Book"

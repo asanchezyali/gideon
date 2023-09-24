@@ -1,8 +1,8 @@
 import typer
 import os
 
-from src.remove_duplicate_files import remove_duplicate_files
-from src.rename_files import rename_all_files
+from src.duplicate_files import remove_duplicate_files
+from src.rename_files import rename_all_files, change_spaces_with_underscores
 from src.organize_files import organize_files
 
 app = typer.Typer()
@@ -10,8 +10,9 @@ os.chdir("..")
 non_categorized_info = os.path.join(os.getcwd(), "NonCategorizedInfo")
 categorized_info = os.path.join(os.getcwd(), "CategorizedInfo")
 
+
 @app.command()
-def duplicates(auto_delete: bool = False):
+def remove_duplicates(auto_delete: bool = False):
     """
     Finds duplicate files in a given directory and optionally deletes them.
 
@@ -37,6 +38,20 @@ def rename():
     """
     try:
         rename_all_files(non_categorized_info)
+    except Exception as e:
+        typer.echo("An error occurred: ", e)
+
+
+@app.command()
+def change_spaces():
+    """
+    Changes spaces in filenames to underscores in a given directory.
+
+    Args:
+        dir_path (str): The path to the directory to rename files in.
+    """
+    try:
+        change_spaces_with_underscores(non_categorized_info)
     except Exception as e:
         typer.echo("An error occurred: ", e)
 

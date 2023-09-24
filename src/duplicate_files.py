@@ -2,10 +2,11 @@ import hashlib
 import os
 from pathlib import Path
 from src.dir_walker import dir_walker
-
+from utils.bcolors import print_header, print_info
 
 
 def remove_duplicate_files(dir_path, auto_delete=False):
+    print_header(f"Removing duplicate files in {dir_path}")
     seen = set()
     for file in dir_walker(Path(dir_path)):
         with open(file, "rb") as f:
@@ -14,7 +15,7 @@ def remove_duplicate_files(dir_path, auto_delete=False):
             if auto_delete:
                 os.remove(file)
             else:
-                print(f"Duplicate file: {file}")
+                print_info(f"Found duplicate file: {file}")
                 intent = str(input("Remove? [yes/no] ")).lower()
                 while intent not in ["yes", "no"]:
                     intent = input("Remove? [yes/no] ")
@@ -22,6 +23,7 @@ def remove_duplicate_files(dir_path, auto_delete=False):
                     os.remove(file)
         else:
             seen.add(file_hash)
+    print_info("Finished removing duplicate files!")
 
 
 if __name__ == "__main__":
