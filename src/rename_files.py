@@ -16,13 +16,14 @@ from src.validators import validators
 from src.constants import DocType, TOPICS, EXCLUDE_PROJECT_DIR
 from src.dir_walker import dir_walker
 from utils.bcolors import print_info, print_header, print_success
+from utils.managers import open_file, close_file
 
 
 def add_author_to_filename():
     author = str(input("Author: "))
     while not validate_author(author):
         author = str(input("Author: "))
-    return author
+    return author.replace(" ", "_")
 
 
 def add_year_to_filename():
@@ -171,38 +172,10 @@ def get_extension(filename):
     return os.path.splitext(filename)[1]
 
 
-def open_file(file):
-    print_info(f"Opening file: {file}")
-    if platform.system() == "Linux":
-        cmd = ["xdg-open", file]
-    elif platform.system() == "Darwin":
-        cmd = ["open", file]
-    elif platform.system() == "Windows":
-        cmd = ["start", file]
-    else:
-        raise OSError("Unsupported operating system")
-
-    process = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        shell=True if platform.system() == "Windows" else False,
-    )
-    return process
-
-
-def close_file(process):
-    if platform.system() in ("Linux", "Darwin"):
-        os.kill(process.pid, signal.SIGTERM)
-    elif platform.system() == "Windows":
-        process.terminate()
-    else:
-        raise OSError("Unsupported operating system")
-
-
 def show_options(filename):
     print_header(f"Select an document type for {filename}:")
     for i in range(DocType.total_types()):
-        print_info(f"{i + 1}. {DocType.get_type_docs()[i]}")
+        print_info(f"{i + 1}. {DocType.get_type_ext_docs()[i]}")
     print_info(f"{DocType.total_types()+1}. Delete file")
     print_info(f"{DocType.total_types()+2}. Exit")
 
@@ -217,7 +190,7 @@ def delete_file(file):
 
 def change_spaces_with_underscores(dir_path):
     print_header("Starting change spaces with underscores...")
-    for file in dir_walker(dir_path, dir_excludes=[EXCLUDE_PROJECT_DIR]):
+    for file in dir_walker(dir_path, dir_excludes=EXCLUDE_PROJECT_DIR):
         directory = os.path.dirname(file)
         filename = os.path.basename(file)
         new_filename = filename.replace(" ", "_")
@@ -228,7 +201,7 @@ def change_spaces_with_underscores(dir_path):
 
 def rename_all_files(dir_path):
     print_header("Starting rename files...")
-    for file in dir_walker(dir_path, dir_excludes=[EXCLUDE_PROJECT_DIR]):
+    for file in dir_walker(dir_path, dir_excludes=EXCLUDE_PROJECT_DIR):
         filename = get_filename(file)
         if validate_filename(filename):
             continue

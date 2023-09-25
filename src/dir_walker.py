@@ -5,7 +5,6 @@ import sys
 def dir_walker(dir_path, dir_excludes=None, file_excludes=None):
     for root, _, files in os.walk(dir_path):
         path_parts = root.split(os.sep)
-
         if dir_excludes:
             if any(
                 part.endswith(dir_exclude)
@@ -17,7 +16,9 @@ def dir_walker(dir_path, dir_excludes=None, file_excludes=None):
             files = [
                 file
                 for file in files
-                if not any(file.endswith(file_exclude) for file_exclude in file_excludes)
+                if not any(
+                    file.endswith(file_exclude) for file_exclude in file_excludes
+                )
             ]
 
         for file in files:

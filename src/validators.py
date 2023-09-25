@@ -1,5 +1,5 @@
 from utils.bcolors import print_info, print_error
-from src.constants import MONTHS, TOPICS, DocType
+from src.constants import MONTHS, TOPICS, DocType, FORMAT_NORMAL_DOC, FORMAT_COMMERCIAL_DOC
 
 
 def validate_title(title):
@@ -53,6 +53,11 @@ def validate_author(author):
         print_error(f"{author} is not a valid author")
         print_info(f"Expected format: at least 4 words for author")
         return False
+
+    if "." in author:
+        print_error(f"{author} is not a valid author")
+        print_info(f"Expected format: no points in author")
+        return False
     return True
 
 
@@ -94,7 +99,7 @@ def validate_doc_type(doc_type):
 def validate_doc_name_length(chunks, doc_name):
     if len(chunks) != 6:
         print_error(f"{doc_name} is not a valid document name")
-        print_info(f"Expected format: <author>.<year>.<title>.<topic>.<doc_type>.<ext>")
+        print_info(f"Expected format: {FORMAT_NORMAL_DOC}")
         return False
     return True
 
@@ -145,7 +150,7 @@ def validate_thesis(filename):
 def validate_commercial_doc_name_length(chunks, doc_name):
     if len(chunks) != 5:
         print_error(f"{doc_name} is not a valid document name")
-        print_info(f"Expected format: <date>.<company>.<name>.<doc_type>.<ext>")
+        print_info(f"Expected format: {FORMAT_COMMERCIAL_DOC}")
         return False
     return True
 
@@ -197,3 +202,9 @@ validators = {
     DocType.LEGAL_DOCUMENT: validate_legal_document,
     DocType.NON_DISCLOSURE_AGREEMENT: validate_nda,
 }
+
+def validate_project_name(project_name_dir):
+    print_info(f"Opening {project_name_dir}")
+    if len(project_name_dir.split("_")) == 3:
+        return True
+    return False

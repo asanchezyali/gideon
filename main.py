@@ -1,9 +1,9 @@
 import typer
 import os
 
-from src.duplicate_files import remove_duplicate_files
+from src.delete_duplicated_files import remove_duplicate_files
 from src.rename_files import rename_all_files, change_spaces_with_underscores
-from src.organize_files import organize_files
+from src.organize_files import organize_all_files, _delete_empty_dirs, move_project_dir
 
 app = typer.Typer()
 os.chdir("..")
@@ -29,7 +29,7 @@ def remove_duplicates(auto_delete: bool = False):
 
 
 @app.command()
-def rename():
+def rename_files():
     """
     Renames files in a given directory based on their file extension.
 
@@ -43,7 +43,7 @@ def rename():
 
 
 @app.command()
-def change_spaces():
+def remove_name_spaces():
     """
     Changes spaces in filenames to underscores in a given directory.
 
@@ -57,7 +57,7 @@ def change_spaces():
 
 
 @app.command()
-def organize():
+def organize_files():
     """
     Organizes files in a given directory into subdirectories based on their file
     extension.
@@ -67,7 +67,48 @@ def organize():
         dir_output (str): The path to the directory to output the organized files
     """
     try:
-        organize_files(non_categorized_info, categorized_info)
+        organize_all_files(non_categorized_info, categorized_info)
+    except Exception as e:
+        typer.echo("An error occurred: ", e)
+
+
+@app.command()
+def recalculate_hashes():
+    """
+    Recalculates the hashes of all files in a given directory.
+
+    Args:
+        dir_path (str): The path to the directory to recalculate hashes in.
+    """
+    pass
+
+
+@app.command()
+def delete_empty_dirs():
+    """
+    Deletes all empty directories in a given directory.
+
+    Args:
+        dir_path (str): The path to the directory to delete empty directories in.
+    """
+    try:
+        _delete_empty_dirs(non_categorized_info)
+    except Exception as e:
+        typer.echo("An error occurred: ", e)
+
+
+@app.command()
+def organize_projects():
+    """
+    Organizes projects in a given directory into subdirectories based on their
+    project type.
+
+    Args:
+        dir_input (str): The path to the directory to organize.
+        dir_output (str): The path to the directory to output the organized files
+    """
+    try:
+        move_project_dir(non_categorized_info, categorized_info)
     except Exception as e:
         typer.echo("An error occurred: ", e)
 

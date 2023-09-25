@@ -1,4 +1,9 @@
-EXCLUDE_PROJECT_DIR = "_project"
+EXCLUDE_PROJECT_DIR = [".owner", ".vscode", ".git", ".gitignore", ".DS_Store", ".job"]
+FORMAT_NORMAL_DOC = "<author>.<year>.<title>.<topic>.<doc_type>.<ext>"
+FORMAT_COMMERCIAL_DOC = "<date>.<company>.<name>.<doc_type>.<ext>"
+FORMAT_RESEARCH_PROJECT = "<ProjectName>.<Topic>.Owner"
+FORMAT_COMMERCIAL_PROJECT = "<ProjectName>.<Company>.Job"
+
 class DocType:
     ARTICLE = "Art"
     BOOK = "Book"
@@ -6,7 +11,6 @@ class DocType:
     COMMERCIAL_DOCUMENT = "CommDoc"
     LEGAL_DOCUMENT = "LegalDoc"
     NON_DISCLOSURE_AGREEMENT = "NDA"
-    SCRIPT = "Scripts"
 
     @staticmethod
     def get_type_docs():
@@ -16,10 +20,9 @@ class DocType:
             DocType.THESIS: "theses",
             DocType.COMMERCIAL_DOCUMENT: "commercial documents",
             DocType.LEGAL_DOCUMENT: "legal documents",
-            DocType.SCRIPT: "scripts",
             DocType.NON_DISCLOSURE_AGREEMENT: "nda",
         }
-        return list(docs.values())
+        return docs
 
     def get_type_ext_docs():
         return [
@@ -28,13 +31,12 @@ class DocType:
             DocType.THESIS,
             DocType.COMMERCIAL_DOCUMENT,
             DocType.LEGAL_DOCUMENT,
-            DocType.SCRIPT,
             DocType.NON_DISCLOSURE_AGREEMENT,
         ]
 
     @staticmethod
     def total_types():
-        return len(DocType.get_type_docs())
+        return len(DocType.get_type_ext_docs())
 
 
 TOPICS = {
