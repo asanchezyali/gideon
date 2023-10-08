@@ -139,6 +139,9 @@ def rename_legal_document(file, extension):
 def rename_nda(file, extension):
     return rename_commercial_doc(DocType.NON_DISCLOSURE_AGREEMENT, file, extension)
 
+def rename_personal_document(file, extension):
+    return rename_commercial_doc(DocType.PERSONAL_DOCUMENT, file, extension)
+
 actions = {
     DocType.ARTICLE: rename_article,
     DocType.BOOK: rename_book,
@@ -146,6 +149,7 @@ actions = {
     DocType.COMMERCIAL_DOCUMENT: rename_commercial_document,
     DocType.LEGAL_DOCUMENT: rename_legal_document,
     DocType.NON_DISCLOSURE_AGREEMENT: rename_nda,
+    DocType.PERSONAL_DOCUMENT: rename_personal_document,
 }
 
 
@@ -175,7 +179,7 @@ def get_extension(filename):
 def show_options(filename):
     print_header(f"Select an document type for {filename}:")
     for i in range(DocType.total_types()):
-        print_info(f"{i + 1}. {DocType.get_type_ext_docs()[i]}")
+        print_info(f"{i + 1}. {DocType.get_type_docs()[DocType.get_type_ext_docs()[i]]}")
     print_info(f"{DocType.total_types()+1}. Delete file")
     print_info(f"{DocType.total_types()+2}. Exit")
 

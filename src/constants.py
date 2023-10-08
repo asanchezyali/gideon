@@ -11,16 +11,18 @@ class DocType:
     COMMERCIAL_DOCUMENT = "CommDoc"
     LEGAL_DOCUMENT = "LegalDoc"
     NON_DISCLOSURE_AGREEMENT = "NDA"
+    PERSONAL_DOCUMENT = "PersonalDoc"
 
     @staticmethod
     def get_type_docs():
         docs = {
-            DocType.ARTICLE: "articles",
-            DocType.BOOK: "books",
-            DocType.THESIS: "theses",
-            DocType.COMMERCIAL_DOCUMENT: "commercial documents",
-            DocType.LEGAL_DOCUMENT: "legal documents",
-            DocType.NON_DISCLOSURE_AGREEMENT: "nda",
+            DocType.ARTICLE: "Articles",
+            DocType.BOOK: "Books",
+            DocType.THESIS: "Theses",
+            DocType.COMMERCIAL_DOCUMENT: "Commercial documents",
+            DocType.LEGAL_DOCUMENT: "Legal documents",
+            DocType.NON_DISCLOSURE_AGREEMENT: "Non-disclosure agreements",
+            DocType.PERSONAL_DOCUMENT: "Personal documents",
         }
         return docs
 
@@ -32,6 +34,7 @@ class DocType:
             DocType.COMMERCIAL_DOCUMENT,
             DocType.LEGAL_DOCUMENT,
             DocType.NON_DISCLOSURE_AGREEMENT,
+            DocType.PERSONAL_DOCUMENT,
         ]
 
     @staticmethod
@@ -60,10 +63,12 @@ TOPICS = {
     "Hum": "Humanities",
     "Arts": "Arts",
     "Eng": "Engineering",
+    "Prog": "Programming",
     "Bus": "business",
     "Heal": "Health",
     "Block": "Blockchain",
     "Othr": "Other",
+    "Own": "Own",
 }
 
 MONTHS = [

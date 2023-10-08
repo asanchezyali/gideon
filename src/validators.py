@@ -193,6 +193,9 @@ def validate_legal_document(filename):
 def validate_nda(filename):
     return validate_commercial_doc(filename)
 
+def validate_personal_document(filename):
+    return validate_commercial_doc(filename)
+
 
 validators = {
     DocType.ARTICLE: validate_article,
@@ -201,6 +204,7 @@ validators = {
     DocType.COMMERCIAL_DOCUMENT: validate_commercial_document,
     DocType.LEGAL_DOCUMENT: validate_legal_document,
     DocType.NON_DISCLOSURE_AGREEMENT: validate_nda,
+    DocType.PERSONAL_DOCUMENT: validate_personal_document,
 }
 
 def validate_project_name(project_name_dir):

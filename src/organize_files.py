@@ -115,6 +115,10 @@ def save_nda(file, filename, dir_output):
     return save_commercial_doc(file, filename, dir_output)
 
 
+def save_personal_document(file, filename, dir_output):
+    return save_commercial_doc(file, filename, dir_output)
+
+
 save_file_actions = {
     DocType.ARTICLE: save_article,
     DocType.BOOK: save_book,
@@ -122,6 +126,7 @@ save_file_actions = {
     DocType.COMMERCIAL_DOCUMENT: save_commercial_document,
     DocType.LEGAL_DOCUMENT: save_legal_document,
     DocType.NON_DISCLOSURE_AGREEMENT: save_nda,
+    DocType.PERSONAL_DOCUMENT: save_commercial_doc,
 }
 
 
@@ -157,7 +162,7 @@ def move_project_dir(dir_input, dir_output):
                 topic = TOPICS[topic]
                 new_dir = (
                     Path(dir_output)
-                    / topic.capitalize().replace(" ", "_")
+                    / camel_case(topic).replace(" ", "_")
                     / "Projects"
                     / dirname.replace(" ", "_")
                 )
