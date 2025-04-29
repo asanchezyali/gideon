@@ -1,17 +1,33 @@
-[tool.poetry]
+[project]
 name = "gideon"
 version = "0.1.0"
 description = "Artificially Intelligent Personal Assistant"
-authors = ["Alejandro Sánchez Yalí <asanchezyali@gmail.com>"]
-license = "MIT"
+authors = [
+    {name = "Alejandro Sánchez Yalí", email = "asanchezyali@gmail.com"}
+]
+dependencies = [
+    "langchain>=0.1.0",
+    "langchain-community>=0.0.10",
+    "langchain-core>=0.1.0",
+    "langchain-text-splitters>=0.0.1",
+    "pypdf>=3.0.0",
+    "ollama>=0.1.0",
+    "pydantic>=2.0.0",
+    "tiktoken>=0.5.2",
+    "faiss-cpu>=1.7.4",
+    "typing-extensions>=4.5.0",
+    "typer>=0.9.0",
+    "rich>=13.7.0",
+    "unstructured>=0.10.30",
+    "python-magic>=0.4.27"
+]
+requires-python = ">=3.10"
 readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.10"
-typer = {extras = ["all"], version = "^0.6.1"}
-rich = "^12.6.0"
-
+license = {text = "MIT"}
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+gideon = "src.organize_files:app"

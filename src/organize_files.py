@@ -1,220 +1,138 @@
-import os
-import json
-import shutil
-from hashlib import md5
+import asyncio
 from pathlib import Path
-from src.constants import EXCLUDE_PROJECT_DIR
-from src.dir_walker import dir_walker
-from src.constants import DocType, TOPICS, EXCLUDE_PROJECT_DIR, FORMAT_RESEARCH_PROJECT, FORMAT_COMMERCIAL_PROJECT
-from src.rename_files import rename_all_files
-from utils.bcolors import print_error, print_info, print_success
-from utils.managers import open_file, close_file
-from utils.strings import camel_case
 
+try:
+    import typer
+    from rich.console import Console
+    from rich.table import Table
+    from rich.panel import Panel
+    from rich.tree import Tree
+except ImportError:
+    print("Installing required packages...")
+    raise ImportError("Please install required packages: typer[all] rich")
 
-def calculate_file_hash(file):
-    return md5(open(file, "rb").read()).hexdigest()
+from .langchain_integration.agent import DocumentAgent
+from .dir_walker import DirWalker
 
+console = Console()
+app = typer.Typer()
 
-def load_file_hashes(dir_output):
-    file_hash_path = Path(dir_output) / "file_hashes.json"
-    if file_hash_path.exists():
-        with open(file_hash_path, "r") as f:
-            file_hashes = json.load(f)
-            return file_hashes, file_hash_path
-    else:
-        return {}, file_hash_path
+def process_manual(directory: Path):
+    """Process files manually using the existing system."""
+    dir_walker = DirWalker()
+    dir_walker.process_directory(directory)
 
+def _create_directory_tree(directory: Path) -> Tree:
+    """Create a tree visualization of the directory structure."""
+    tree = Tree(f"📁 {directory.name}")
+    
+    # Add subdirectories
+    for path in sorted(directory.iterdir()):
+        if path.is_dir() and not path.name.startswith('.'):
+            branch = tree.add(f"📁 {path.name}")
+            file_count = len([f for f in path.glob('*') if f.is_file()])
+            if file_count > 0:
+                branch.add(f"📄 {file_count} {'file' if file_count == 1 else 'files'}")
+    
+    return tree
 
-def open_duplicate_files(file, duplicate_file):
-    print_info(f"Duplicate file: {file}")
-    print_info(f"Original file: {duplicate_file}")
-    process_one = open_file(file)
-    process_two = open_file(duplicate_file)
-    return process_one, process_two
-
-
-def remove_duplicate_file(intent, file, process_one, process_two):
-    if intent == "yes":
-        close_file(process_one)
-        close_file(process_two)
-        os.remove(file)
-        print_success(f"Removed {file}")
-    else:
-        close_file(process_one)
-        close_file(process_two)
-        print_info(f"Kept {file}")
-
-
-def save_normal_doc(file, filename, dir_output):
-    try:
-        print_info(f"Saving {file}...")
-        _, year, _, topic, doc_type, _ = filename.split(".")
-        topic = TOPICS[topic]
-        doc_type = DocType.get_type_docs()[doc_type]
-        new_dir = (
-            Path(dir_output)
-            / camel_case(topic).replace(" ", "_")
-            / doc_type.capitalize().replace(" ", "_")
-            / year
-        )
-        print_info(f"Moving {file} to {new_dir}...")
-        new_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copy(file, os.path.join(new_dir, filename))
-        os.remove(file)
-        return os.path.join(new_dir, filename)
-    except Exception as error:
-        print_error(f'Error in the file "{filename}"')
-        print_error(error)
-        return None
-
-
-def save_article(file, filename, dir_output):
-    return save_normal_doc(file, filename, dir_output)
-
-
-def save_book(file, filename, dir_output):
-    return save_normal_doc(file, filename, dir_output)
-
-
-def save_thesis(file, filename, dir_output):
-    return save_normal_doc(file, filename, dir_output)
-
-
-def save_commercial_doc(file, filename, dir_output):
-    try:
-        print_info(f"Saving {file}...")
-        date, company, _, doc_type, _ = filename.split(".")
-        doc_type = DocType.get_type_docs()[doc_type]
-        new_dir = (
-            Path(dir_output)
-            / camel_case(doc_type).replace(" ", "_")
-            / company.upper().replace(" ", "_")
-            / date
-        )
-        print_info(f"Moving {file} to {new_dir}...")
-        new_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copy(file, os.path.join(new_dir, filename))
-        os.remove(file)
-        return os.path.join(new_dir, filename)
-    except Exception as error:
-        print_error(f'Error in the file "{filename}"')
-        print_error(error)
-        return None
-
-
-def save_commercial_document(file, filename, dir_output):
-    return save_commercial_doc(file, filename, dir_output)
-
-
-def save_legal_document(file, filename, dir_output):
-    return save_commercial_doc(file, filename, dir_output)
-
-
-def save_nda(file, filename, dir_output):
-    return save_commercial_doc(file, filename, dir_output)
-
-
-def save_personal_document(file, filename, dir_output):
-    return save_commercial_doc(file, filename, dir_output)
-
-
-save_file_actions = {
-    DocType.ARTICLE: save_article,
-    DocType.BOOK: save_book,
-    DocType.THESIS: save_thesis,
-    DocType.COMMERCIAL_DOCUMENT: save_commercial_document,
-    DocType.LEGAL_DOCUMENT: save_legal_document,
-    DocType.NON_DISCLOSURE_AGREEMENT: save_nda,
-    DocType.PERSONAL_DOCUMENT: save_commercial_doc,
-}
-
-
-def get_doc_type(filename):
-    chunks = filename.split(".")
-    return chunks[-2]
-
-
-def _delete_empty_dirs(dir_input):
-    for root, dirs, _ in os.walk(dir_input, topdown=False):
-        for name in dirs:
-            if not os.listdir(os.path.join(root, name)):
-                print_info(f"Removing empty dir: {os.path.join(root, name)}")
-                os.rmdir(os.path.join(root, name))
-
-    if not os.listdir(dir_input):
-        print_info(f"Removing empty dir: {dir_input}")
-        os.rmdir(dir_input)
-
-
-def move_project_dir(dir_input, dir_output):
-    print_info("Starting move project dir...")
-    for root, dirs, _ in os.walk(dir_input):
-        for dirname in dirs:
-            chunks = dirname.split(".")
-            if len(chunks) != 3:
-                print_error(f"{dirname} is not a valid project name")
-                print_info(f"Expected format: {FORMAT_RESEARCH_PROJECT}")
-                continue
-            _, topic, project_type = dirname.split(".")
-            if project_type == "Owner":
-                print_info(f"Moving {dirname} to {dir_output}...")
-                topic = TOPICS[topic]
-                new_dir = (
-                    Path(dir_output)
-                    / camel_case(topic).replace(" ", "_")
-                    / "Projects"
-                    / dirname.replace(" ", "_")
-                )
-                print_info(f"Moving {dirname} to {new_dir}...")
-                shutil.move(os.path.join(root, dirname), new_dir)
-            elif project_type == "Job":
-                print_info(f"Moving {dirname} to {dir_output}...")
-                new_dir = (
-                    Path(dir_output)
-                    / "Jobs"
-                    / topic.upper().replace(" ", "_")
-                    / "Projects"
-                    / dirname.replace(" ", "_")
-                )
-                print_info(f"Moving {dirname} to {new_dir}...")
-                shutil.move(os.path.join(root, dirname), new_dir)
+async def process_automated(directory: Path, auto_delete: bool = False) -> None:
+    """Process files automatically using LangChain and Ollama."""
+    console.print("\n[yellow]Starting automated document processing...[/yellow]")
+    
+    # Show initial directory state
+    console.print("\n[blue]Initial directory structure:[/blue]")
+    console.print(_create_directory_tree(directory))
+    
+    agent = DocumentAgent(str(directory))
+    results = await agent.process_directory()
+    
+    # Display results in a table
+    table = Table(title="Document Processing Results")
+    table.add_column("Original Name", style="cyan")
+    table.add_column("New Location", style="green")
+    table.add_column("Type", style="magenta")
+    table.add_column("Status", style="yellow")
+    
+    success_count = 0
+    duplicate_count = 0
+    error_count = 0
+    
+    for result in results:
+        if result.get("is_duplicate", False):
+            original = Path(result["file_path"]).name
+            duplicate_count += 1
+            if auto_delete:
+                try:
+                    Path(result["file_path"]).unlink()
+                    status = "✓ Duplicate removed"
+                except Exception as e:
+                    status = f"✗ Failed to remove duplicate: {str(e)}"
             else:
-                print_error(f"Unknown project type: {project_type}")
-                print_error(f"Project type must be 'owner' or 'job'")
-                print_error(f"Project type found: {project_type}")
-                print_error(f"Project dir: {dirname}")
-                print_error(f"Project dir path: {os.path.join(root, dirname)}")
-                print_error("Aborting...")
-    print_info("Finished move project dir.")
-
-
-def organize_all_files(dir_input, dir_output):
-    print_info("Starting rename files...")
-    rename_all_files(dir_input)
-    print_info("Starting organize files...")
-
-    for file in dir_walker(dir_input, dir_excludes=EXCLUDE_PROJECT_DIR):
-        print_info(f"Processing {file}...")
-        filename = os.path.basename(file)
-        file_hash = calculate_file_hash(file)
-        file_hashes, file_hash_path = load_file_hashes(dir_output)
-
-        if file_hash in file_hashes:
-            process_one, process_two = open_duplicate_files(
-                file, file_hashes[file_hash]
-            )
-            intent = str(input("Remove? [yes/no] ")).lower()
-            while intent not in ["yes", "no"]:
-                intent = input("Remove? [yes/no] ")
-            remove_duplicate_file(intent, file, process_one, process_two)
+                status = "⚠ Duplicate found"
+            table.add_row(original, "N/A", "DUPLICATE", status, style="yellow")
+        elif result["success"]:
+            success_count += 1
+            original = Path(result["original_path"]).name
+            new_path = Path(result["new_filename"])
+            doc_type = result["classification"]["doc_type"]
+            confidence = result["classification"]["confidence"]
+            status = f"✓ ({confidence:.0%} confident)"
+            table.add_row(original, str(new_path.relative_to(directory)), doc_type, status)
         else:
-            doc_type = get_doc_type(filename)
-            new_file_path = save_file_actions[doc_type](file, filename, dir_output)
-            if new_file_path:
-                file_hashes[file_hash] = new_file_path
-                with open(file_hash_path, "w") as f:
-                    json.dump(file_hashes, f)
+            error_count += 1
+            original = Path(result["file_path"]).name
+            status = f"✗ ({result['error']})"
+            table.add_row(original, "N/A", "ERROR", status, style="red")
+    
+    console.print("\n[yellow]Processing complete![/yellow]")
+    console.print(table)
+    
+    # Show summary
+    summary = Panel(
+        f"""[green]Successfully processed: {success_count}[/green]
+[yellow]Duplicates found: {duplicate_count}[/yellow]
+[red]Errors: {error_count}[/red]""",
+        title="Processing Summary",
+        expand=False
+    )
+    console.print(summary)
+    
+    # Show final directory structure
+    console.print("\n[blue]Final directory structure:[/blue]")
+    console.print(_create_directory_tree(directory))
 
-    _delete_empty_dirs(dir_input)
-    print_info("Finished organizing files.")
+@app.command()
+def organize_files(
+    directory: Path = typer.Argument(..., help="Directory containing files to organize"),
+    automated: bool = typer.Option(
+        True,
+        help="Use automated processing with LangChain and Ollama"
+    ),
+    auto_delete: bool = typer.Option(
+        False,
+        help="Automatically delete duplicate files"
+    )
+) -> None:
+    """
+    Organize documents in a directory, either manually or automatically using LLM.
+    """
+    if not directory.exists():
+        console.print(f"[red]Directory {directory} does not exist[/red]")
+        raise typer.Exit(1)
+        
+    try:
+        if automated:
+            console.print("[yellow]Using automated processing with LangChain and Ollama[/yellow]")
+            asyncio.run(process_automated(directory, auto_delete))
+        else:
+            console.print("[yellow]Using manual processing[/yellow]")
+            process_manual(directory)
+            
+        console.print("\n[green]Processing completed successfully![/green]")
+    except Exception as e:
+        console.print(f"[red]Error during processing: {str(e)}[/red]")
+        raise typer.Exit(1)
+
+if __name__ == "__main__":
+    app()
