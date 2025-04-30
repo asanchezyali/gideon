@@ -5,7 +5,7 @@ from enum import Enum
 import json
 
 from langchain_community.llms import Ollama
-from langchain_core.callbacks import AsyncIteratorCallbackHandler
+from langchain_core.callbacks import AsyncCallbackHandler
 from langchain_core.output_parsers import StrOutputParser
 
 from .document_processor import DocumentProcessor

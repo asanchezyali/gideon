@@ -4,19 +4,19 @@ import subprocess
 import platform
 from pathlib import Path
 
-from src.validators import validate_author
-from src.validators import validate_year
-from src.validators import validate_title
-from src.validators import validate_date
-from src.validators import validate_month
-from src.validators import validate_day
-from src.validators import validate_company
-from src.validators import validate_name
-from src.validators import validators
-from src.constants import DocType, TOPICS, EXCLUDE_PROJECT_DIR
-from src.dir_walker import dir_walker
-from utils.bcolors import print_info, print_header, print_success
-from utils.managers import open_file, close_file
+from gideon.validators import validate_author
+from gideon.validators import validate_year
+from gideon.validators import validate_title
+from gideon.validators import validate_date
+from gideon.validators import validate_month
+from gideon.validators import validate_day
+from gideon.validators import validate_company
+from gideon.validators import validate_name
+from gideon.validators import validators
+from gideon.constants import DocType, TOPICS, EXCLUDE_PROJECT_DIR
+from gideon.dir_walker import DirWalker
+from gideon.utils.bcolors import print_info, print_header, print_success
+from gideon.utils.managers import open_file, close_file
 
 
 def add_author_to_filename():
@@ -194,7 +194,8 @@ def delete_file(file):
 
 def change_spaces_with_underscores(dir_path):
     print_header("Starting change spaces with underscores...")
-    for file in dir_walker(dir_path, dir_excludes=EXCLUDE_PROJECT_DIR):
+    walker = DirWalker(dir_excludes=EXCLUDE_PROJECT_DIR)
+    for file in walker.process_directory(dir_path):
         directory = os.path.dirname(file)
         filename = os.path.basename(file)
         new_filename = filename.replace(" ", "_")
@@ -205,7 +206,8 @@ def change_spaces_with_underscores(dir_path):
 
 def rename_all_files(dir_path):
     print_header("Starting rename files...")
-    for file in dir_walker(dir_path, dir_excludes=EXCLUDE_PROJECT_DIR):
+    walker = DirWalker(dir_excludes=EXCLUDE_PROJECT_DIR)
+    for file in walker.process_directory(dir_path):
         filename = get_filename(file)
         if validate_filename(filename):
             continue
@@ -228,6 +230,23 @@ def rename_all_files(dir_path):
             renamed = set_filename(option, file, filename)
         print_success("File renamed successfully!")
     print_success("Finished renaming files!")
+
+
+def rename_file(file_path: str, doc_type: str) -> bool:
+    """
+    Rename a file based on its document type.
+    
+    Args:
+        file_path: Path to the file to rename
+        doc_type: Document type to use for renaming
+        
+    Returns:
+        bool: True if file was renamed successfully, False otherwise
+    """
+    extension = get_extension(file_path)
+    if doc_type in actions:
+        return actions[doc_type](file_path, extension)
+    return False
 
 
 if __name__ == "__main__":

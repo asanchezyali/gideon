@@ -2,7 +2,8 @@ import os
 import platform
 import signal
 import subprocess
-from utils.bcolors import print_info
+from pathlib import Path
+from gideon.utils.bcolors import print_info
 
 
 def open_file(file):

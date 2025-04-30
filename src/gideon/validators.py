@@ -1,5 +1,5 @@
-from utils.bcolors import print_info, print_error
-from src.constants import MONTHS, TOPICS, DocType, FORMAT_NORMAL_DOC, FORMAT_COMMERCIAL_DOC
+from gideon.utils.bcolors import print_info, print_error
+from gideon.constants import MONTHS, TOPICS, DocType, FORMAT_NORMAL_DOC, FORMAT_COMMERCIAL_DOC
 
 
 def validate_title(title):

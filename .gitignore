@@ -55,3 +55,4 @@ config.local.yaml
 test-output/
 .coverage
 coverage.xml
+/Mathematics/
