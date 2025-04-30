@@ -1,7 +1,8 @@
 import hashlib
 from pathlib import Path
-from typing import List, Set
-
+from typing import List, Set, Optional
+import asyncio
+from PyPDF2 import PdfReader
 from langchain_community.document_loaders import (
     PyPDFLoader,
     TextLoader,
@@ -10,6 +11,9 @@ from langchain_community.document_loaders import (
 )
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter, Language
+from rich.console import Console
+
+console = Console()
 
 class DocumentProcessor:
     def __init__(self):
@@ -119,3 +123,24 @@ class DocumentProcessor:
         """Check if a file is a duplicate based on its hash."""
         file_hash = self._calculate_file_hash(file_path)
         return file_hash in self.seen_hashes
+
+    async def extract_text(self, file_path: Path) -> Optional[str]:
+        """Extract text content from a file."""
+        try:
+            if file_path.suffix == '.pdf':
+                with open(file_path, 'rb') as file:
+                    reader = PdfReader(file)
+                    content = []
+                    # Extract text from first 3 pages
+                    for page in reader.pages[:3]:
+                        text = page.extract_text()
+                        if text:
+                            content.append(text)
+                    return "\n".join(content)
+            else:
+                loader = TextLoader(str(file_path))
+                documents = loader.load()
+                return documents[0].page_content
+        except Exception as e:
+            console.print(f"[red]Error extracting text from {file_path.name}: {str(e)}[/red]")
+            return None

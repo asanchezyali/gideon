@@ -1,6 +1,7 @@
 import asyncio
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Tuple
+import re
 
 try:
     import typer
@@ -383,26 +384,95 @@ def find_duplicates_command(
         console.print(f"[red]Error finding duplicates: {str(e)}[/red]")
         raise typer.Exit(1)
 
+def normalize_filename(filename: str) -> str:
+    """Normalize a filename to follow our standard format."""
+    # Remove any extra spaces and normalize dots
+    filename = re.sub(r'\s+', ' ', filename).strip()
+    filename = re.sub(r'\.+', '.', filename)
+    
+    # Split into parts
+    parts = filename.split('.')
+    if len(parts) < 2:
+        return filename
+        
+    # Normalize each part
+    normalized_parts = []
+    for i, part in enumerate(parts):
+        if i == 0:  # Author name
+            # Handle multiple authors
+            authors = [a.strip().capitalize() for a in part.split('_')]
+            normalized_parts.append('_'.join(authors))
+        elif i == 1:  # Year
+            # Ensure year is 4 digits
+            year = re.sub(r'\D', '', part)
+            if len(year) == 2:
+                year = '20' + year if int(year) < 50 else '19' + year
+            normalized_parts.append(year)
+        else:  # Title, topic, etc.
+            # Capitalize words and remove special characters
+            words = [w.capitalize() for w in re.sub(r'[^a-zA-Z0-9\s]', ' ', part).split()]
+            normalized_parts.append(''.join(words))
+    
+    # Ensure we have at least Author.Year.Title.Topic
+    while len(normalized_parts) < 4:
+        normalized_parts.append('Unknown')
+    
+    return '.'.join(normalized_parts) + '.pdf'
+
+def validate_filename(filename: str) -> Tuple[bool, str]:
+    """Validate a filename against our standards."""
+    # Check basic structure
+    if not filename.endswith('.pdf'):
+        return False, "Filename must end with .pdf"
+        
+    parts = filename[:-4].split('.')  # Remove .pdf and split
+    if len(parts) < 4:
+        return False, "Filename must have at least Author.Year.Title.Topic"
+        
+    # Check author format
+    if not re.match(r'^[A-Z][a-zA-Z]+(_[A-Z][a-zA-Z]+)*$', parts[0]):
+        return False, "Author name must be capitalized and use underscores for multiple authors"
+        
+    # Check year format
+    if not re.match(r'^\d{4}$', parts[1]):
+        return False, "Year must be 4 digits"
+        
+    # Check title and topic format
+    for part in parts[2:]:
+        if not re.match(r'^[A-Z][a-zA-Z]+$', part):
+            return False, "Title and topic must be capitalized words without spaces"
+            
+    return True, "Valid filename"
+
 async def _rename_file_with_ollama(file_path: Path, supervised: bool = False) -> Optional[str]:
     """Rename a file using Ollama for content analysis."""
     try:
-        # Initialize Ollama
-        llm = OllamaLLM(model="deepseek-coder:1.3b")
+        # Initialize Ollama with mistral model
+        llm = OllamaLLM(model="mistral")
         
         # Create prompt template
         prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a document analysis assistant. Analyze the content and suggest a new filename following these rules:
-            1. For academic papers: author.year.title.topic.pdf
-            2. For books: author.year.title.publisher.pdf
-            3. For lecture notes: course_code.year.lecture_title.pdf
-            4. For research papers: author.year.title.journal.pdf
-            5. For theses: author.year.title.degree.pdf
-            6. For commercial documents: date.company.name.doc_type.pdf
-            7. For legal documents: date.party1.party2.doc_type.pdf
-            8. For NDAs: date.parties.doc_type.pdf
-            9. For personal documents: date.category.description.pdf
+            ("system", """You are a document analysis assistant. Your task is to analyze document content and generate appropriate filenames.
             
-            Use only alphanumeric characters, dots, and underscores. Keep it concise but descriptive."""),
+            Rules for filename generation:
+            1. Format: Author.Year.Title.Topic.pdf
+            2. Author names must be capitalized and use underscores for multiple authors
+            3. Year must be 4 digits
+            4. Title and Topic must be capitalized words without spaces
+            5. Use only alphanumeric characters and dots
+            6. Keep filenames under 100 characters
+            
+            Example outputs:
+            - Schuller.2013.GeometricAnatomyTheoreticalPhysics.DifferentialGeometry.pdf
+            - Boumal.2023.OptimizationSmoothManifolds.DifferentialGeometry.pdf
+            - Rincon.2014.Probabilidad.Statistics.pdf
+            - Ledolter_Swersey.2007.ExperimentalDesignMarketing.Statistics.pdf
+            
+            Important:
+            - Always follow the exact format: Author.Year.Title.Topic.pdf
+            - Capitalize all words
+            - Use underscores only for multiple authors
+            - Return ONLY the filename, nothing else."""),
             ("user", "Analyze this document and suggest a new filename: {content}")
         ])
         
@@ -418,6 +488,20 @@ async def _rename_file_with_ollama(file_path: Path, supervised: bool = False) ->
         # Get suggested filename
         suggested_name = await chain.ainvoke({"content": content[:5000]})  # Use first 5000 chars
         
+        # Clean up and normalize the response
+        suggested_name = suggested_name.strip()
+        suggested_name = normalize_filename(suggested_name)
+        
+        # Validate the filename
+        is_valid, message = validate_filename(suggested_name)
+        if not is_valid:
+            console.print(f"[yellow]Warning: {message}[/yellow]")
+            if supervised:
+                console.print(f"[yellow]Suggested name: {suggested_name}[/yellow]")
+                new_name = Prompt.ask("Enter valid filename (Author.Year.Title.Topic.pdf)")
+                return normalize_filename(new_name)
+            return None
+            
         if supervised:
             # Show current and suggested names
             table = Table(title="File Renaming")
@@ -431,7 +515,7 @@ async def _rename_file_with_ollama(file_path: Path, supervised: bool = False) ->
                 return suggested_name
             else:
                 new_name = Prompt.ask("Enter new name")
-                return new_name
+                return normalize_filename(new_name)
         else:
             return suggested_name
             
