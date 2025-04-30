@@ -38,9 +38,13 @@ class RenamingAgent:
             
             Rules:
             1. Author must be a single capitalized name (use first author if multiple)
-            2. Year must be exactly 4 digits (use "Unknown" if not found)
+               - If no author is found, use an empty string ""
+            2. Year must be exactly 4 digits
+               - If no year is found, use an empty string ""
             3. Title must be in camelCase without spaces (e.g., "GeometricRelationsInAnArbitraryMetricSpace")
-            4. Topic must be in camelCase (e.g., "DifferentialGeometry")
+               - If no title is found, use an empty string ""
+            4. Topic must be a single word in camelCase describing the main subject
+               - If no topic is found, use an empty string ""
             5. All strings must be in double quotes
             6. No comments or explanations
             
@@ -134,29 +138,34 @@ class RenamingAgent:
                 return False
             
             # Normalize and validate values
-            if not analysis["author"]:
+            if not analysis["author"] or analysis["author"].strip() == "":
                 analysis["author"] = "UnknownAuthor"
+                console.print("[yellow]No author found. Using 'UnknownAuthor'[/yellow]")
             else:
                 # Take first author if multiple
                 author = analysis["author"].split("_")[0].split()[0]
                 if not author:
                     analysis["author"] = "UnknownAuthor"
+                    console.print("[yellow]Invalid author format. Using 'UnknownAuthor'[/yellow]")
                 else:
                     analysis["author"] = self._normalize_author(author)
             
-            if not analysis["year"] or analysis["year"].lower() in ["null", "n/a", "unknown"]:
+            if not analysis["year"] or analysis["year"].strip() == "" or analysis["year"].lower() in ["null", "n/a", "unknown"]:
                 analysis["year"] = "Unknown"
+                console.print("[yellow]No year found. Using 'Unknown'[/yellow]")
             elif not re.match(r'^\d{4}$', str(analysis["year"])):
                 console.print(f"[yellow]Invalid year format: {analysis['year']}. Using 'Unknown'[/yellow]")
                 analysis["year"] = "Unknown"
             
-            if not analysis["title"]:
+            if not analysis["title"] or analysis["title"].strip() == "":
                 analysis["title"] = "UntitledDocument"
+                console.print("[yellow]No title found. Using 'UntitledDocument'[/yellow]")
             else:
                 analysis["title"] = self._normalize_camelcase(analysis["title"])
             
-            if not analysis["topic"]:
+            if not analysis["topic"] or analysis["topic"].strip() == "":
                 analysis["topic"] = "General"
+                console.print("[yellow]No topic found. Using 'General'[/yellow]")
             else:
                 analysis["topic"] = self._normalize_camelcase(analysis["topic"])
             
