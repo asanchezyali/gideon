@@ -20,7 +20,7 @@ class DocumentMetadata(BaseModel):
     day: str | None = Field(description="Day of document creation (2-digit)")
 
 class DocumentClassification:
-    def __init__(self, model_name: str = "llama3"):
+    def __init__(self, model_name: str = "llama3.1"):
         """Initialize the document classifier with a specific model."""
         self.model = ChatOllama(
             model=model_name,
@@ -68,7 +68,7 @@ class DocumentClassification:
             }
 
 class DocumentAgent:
-    def __init__(self, model_name: str = "llama3"):
+    def __init__(self, model_name: str = "llama3.1"):
         """Initialize the document agent with a specific model."""
         self.classifier = DocumentClassification(model_name)
     

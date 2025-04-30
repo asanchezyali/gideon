@@ -21,10 +21,16 @@ from .rename_files import rename_file, validate_filename, show_options
 from .delete_duplicated_files import find_duplicates
 from .constants import DocType
 from .langchain_integration.document_processor import DocumentProcessor
+from .langchain_integration.renaming_agents import renaming_agent
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 import json
+from PyPDF2 import PdfReader
+import warnings
+
+# Suppress PyPDF2 warnings
+warnings.filterwarnings('ignore', category=UserWarning, module='PyPDF2')
 
 console = Console()
 app = typer.Typer(help="Gideon - Intelligent Document Organization System")
@@ -193,6 +199,47 @@ def process_directory(
         console.print(f"[red]Error during processing: {str(e)}[/red]")
         raise typer.Exit(1)
 
+def _extract_pdf_content(file_path: Path) -> str:
+    """Extract text from a PDF file."""
+    try:
+        reader = PdfReader(str(file_path))
+        content = []
+        # Only read first 3 pages for analysis
+        for page in reader.pages[:3]:
+            content.append(page.extract_text())
+        return "\n".join(content)
+    except Exception as e:
+        console.print(f"[red]Error reading PDF {file_path.name}: {str(e)}[/red]")
+        return ""
+
+async def _rename_file(file_path: Path, supervised: bool) -> str | None:
+    """Rename a single file using the renaming agent."""
+    try:
+        # Extract content
+        content = _extract_pdf_content(file_path)
+        if not content:
+            return None
+            
+        # Analyze document
+        doc_info = await renaming_agent.analyze_document(content, file_path.name)
+        if not doc_info:
+            return None
+            
+        # Generate new filename
+        new_name = renaming_agent.generate_filename(doc_info)
+        
+        # If in supervised mode, ask for confirmation
+        if supervised:
+            console.print(f"\nSuggested name: [green]{new_name}[/green]")
+            if not typer.confirm("Accept this name?"):
+                return None
+                
+        return new_name
+        
+    except Exception as e:
+        console.print(f"[red]Error processing {file_path.name}: {str(e)}[/red]")
+        return None
+
 @rename_app.command("auto")
 def rename_auto(
     directory: Path = typer.Argument(..., help="Directory containing files to rename"),
@@ -233,7 +280,7 @@ async def _rename_auto_impl(directory: Path, supervised: bool):
         for file_path in files:
             progress.update(task, description=f"Processing {file_path.name}")
             
-            new_name = await _rename_file_with_ollama(file_path, supervised)
+            new_name = await _rename_file(file_path, supervised)
             if new_name:
                 try:
                     new_path = file_path.parent / new_name
@@ -443,85 +490,6 @@ def validate_filename(filename: str) -> Tuple[bool, str]:
             return False, "Title and topic must be capitalized words without spaces"
             
     return True, "Valid filename"
-
-async def _rename_file_with_ollama(file_path: Path, supervised: bool = False) -> Optional[str]:
-    """Rename a file using Ollama for content analysis."""
-    try:
-        # Initialize Ollama with mistral model
-        llm = OllamaLLM(model="mistral")
-        
-        # Create prompt template
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a document analysis assistant. Your task is to analyze document content and generate appropriate filenames.
-            
-            Rules for filename generation:
-            1. Format: Author.Year.Title.Topic.pdf
-            2. Author names must be capitalized and use underscores for multiple authors
-            3. Year must be 4 digits
-            4. Title and Topic must be capitalized words without spaces
-            5. Use only alphanumeric characters and dots
-            6. Keep filenames under 100 characters
-            
-            Example outputs:
-            - Schuller.2013.GeometricAnatomyTheoreticalPhysics.DifferentialGeometry.pdf
-            - Boumal.2023.OptimizationSmoothManifolds.DifferentialGeometry.pdf
-            - Rincon.2014.Probabilidad.Statistics.pdf
-            - Ledolter_Swersey.2007.ExperimentalDesignMarketing.Statistics.pdf
-            
-            Important:
-            - Always follow the exact format: Author.Year.Title.Topic.pdf
-            - Capitalize all words
-            - Use underscores only for multiple authors
-            - Return ONLY the filename, nothing else."""),
-            ("user", "Analyze this document and suggest a new filename: {content}")
-        ])
-        
-        # Create chain
-        chain = prompt | llm | StrOutputParser()
-        
-        # Load document content
-        processor = DocumentProcessor()
-        content = await processor.extract_text(file_path)
-        if not content:
-            return None
-            
-        # Get suggested filename
-        suggested_name = await chain.ainvoke({"content": content[:5000]})  # Use first 5000 chars
-        
-        # Clean up and normalize the response
-        suggested_name = suggested_name.strip()
-        suggested_name = normalize_filename(suggested_name)
-        
-        # Validate the filename
-        is_valid, message = validate_filename(suggested_name)
-        if not is_valid:
-            console.print(f"[yellow]Warning: {message}[/yellow]")
-            if supervised:
-                console.print(f"[yellow]Suggested name: {suggested_name}[/yellow]")
-                new_name = Prompt.ask("Enter valid filename (Author.Year.Title.Topic.pdf)")
-                return normalize_filename(new_name)
-            return None
-            
-        if supervised:
-            # Show current and suggested names
-            table = Table(title="File Renaming")
-            table.add_column("Current Name", style="cyan")
-            table.add_column("Suggested Name", style="green")
-            table.add_row(file_path.name, suggested_name)
-            console.print(table)
-            
-            # Ask for confirmation or new name
-            if Confirm.ask("Do you want to use this name?"):
-                return suggested_name
-            else:
-                new_name = Prompt.ask("Enter new name")
-                return normalize_filename(new_name)
-        else:
-            return suggested_name
-            
-    except Exception as e:
-        console.print(f"[red]Error renaming file: {str(e)}[/red]")
-        return None
 
 if __name__ == "__main__":
     app()
