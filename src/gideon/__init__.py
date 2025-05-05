@@ -3,7 +3,7 @@ Gideon - Intelligent Document Organization System
 """
 
 import sys
-from .organize_files import app
+from .main import app
 
 __version__ = "0.1.0"
 

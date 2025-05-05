@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from gideon.organize_files import app
+from gideon.main import app
 
 if __name__ == "__main__":
     app() 
