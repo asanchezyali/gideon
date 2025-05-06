@@ -10,6 +10,9 @@ dependencies = [
     "langchain-community>=0.0.10",
     "langchain-core>=0.1.0",
     "langchain-text-splitters>=0.0.1",
+    "langchain-google-genai>=0.0.11",
+    "langchain-ollama>=0.3.2",
+    "google-generativeai>=0.3.2",
     "pypdf>=3.0.0",
     "ollama>=0.1.0",
     "pydantic>=2.0.0",
@@ -20,8 +23,8 @@ dependencies = [
     "rich>=13.7.0",
     "unstructured>=0.10.30",
     "python-magic>=0.4.27",
-    "langchain-ollama>=0.3.2",
     "pypdf2>=3.0.1",
+    "pydantic-core>=2.14.6",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
@@ -31,5 +34,30 @@ license = {text = "MIT"}
 requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.2.0",
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+]
+
 [project.scripts]
-gideon = "gideon.organize_files:app"
+gideon = "gideon.main:app"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+# Enable pycodestyle ('E') and Pyflakes ('F') codes by default
+select = ["E", "F"]
+ignore = []
+fixable = ["E", "F"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore unused imports in __init__.py files
+"__init__.py" = ["F401"]

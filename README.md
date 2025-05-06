@@ -13,6 +13,11 @@ Gideon is a powerful document organization system that uses artificial intellige
   - Non-Disclosure Agreements (NDA)
   - Personal Documents (PersonalDoc)
 
+- **Multiple LLM Support**: Supports multiple LLM services:
+  - Ollama (local models)
+  - Google Gemini
+  - Easily extensible to support more providers
+
 - **Smart Duplicate Detection**: Identifies and handles duplicate files using secure hash verification
 - **Metadata Extraction**: Automatically extracts metadata like authors, dates, titles, and topics
 - **Standardized File Naming**: Enforces consistent naming conventions based on document types
@@ -28,9 +33,44 @@ Gideon is a powerful document organization system that uses artificial intellige
 pip install -e .
 ```
 
+4. For Ollama support, ensure you have Ollama installed and running
+5. For Gemini support, set your API key:
+```bash
+export GOOGLE_API_KEY=your_api_key_here
+```
+
 ## Usage
 
 Gideon can be used in two modes: automated (using AI) or manual. Here are the main commands:
+
+### Using LLM Services
+
+#### Ask a Question
+```bash
+# Using Ollama (default)
+gideon ask "What is the meaning of life?"
+
+# Using Gemini
+gideon ask "What is the meaning of life?" --service gemini
+
+# Using a specific model
+gideon ask "What is the meaning of life?" --service ollama --model codellama
+```
+
+#### Classify Documents
+```bash
+# Using Ollama
+gideon classify document.pdf
+
+# Using Gemini
+gideon classify document.pdf --service gemini
+```
+
+#### Get Structured JSON Responses
+```bash
+# Example schema
+gideon analyze-json "Analyze this text" '{"type": "string", "sentiment": "string", "confidence": "number"}' --service gemini
+```
 
 ### Organize Documents (Recommended)
 
