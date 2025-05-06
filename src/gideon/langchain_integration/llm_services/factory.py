@@ -30,9 +30,7 @@ class GeminiConfig(BaseModel):
     max_output_tokens: int = Field(default=2048, gt=0)
     api_key: Optional[str] = Field(default=None)
 
-class LLMServiceFactory:
-    """Factory for creating LLM service instances."""
-    
+class LLMServiceFactory:    
     _service_map: Dict[LLMServiceType, Type[LLMServiceInterface]] = {
         LLMServiceType.OLLAMA: OllamaService,
         LLMServiceType.GEMINI: GeminiService,
@@ -48,20 +46,7 @@ class LLMServiceFactory:
               service_type: LLMServiceType, 
               config: Optional[Dict[str, Any]] = None, 
               **kwargs) -> LLMServiceInterface:
-        """Create a new LLM service instance.
-        
-        Args:
-            service_type: Type of LLM service to create
-            config: Configuration dictionary for the service
-            **kwargs: Additional arguments to pass to the service constructor
-            
-        Returns:
-            An instance of the requested LLM service
-            
-        Raises:
-            ValueError: If the service type is not supported
-            ValidationError: If the configuration is invalid
-        """
+
         if service_type not in cls._service_map:
             supported = ", ".join(t.value for t in LLMServiceType)
             raise ValueError(

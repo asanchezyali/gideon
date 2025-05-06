@@ -93,15 +93,14 @@ class OllamaService(LLMServiceInterface):
         Returns:
             A runnable chain
         """
-        chain_elements = [prompt_template, self._model]
-        
+        # Create the base chain with prompt and model
+        chain = prompt_template | self._model
+
+        # Add output parser if provided
         if output_parser:
-            chain_elements.append(
-                output_parser.with_retry() if hasattr(output_parser, 'with_retry')
-                else output_parser
-            )
-            
-        return RunnableSequence(chain_elements)
+            chain = chain | output_parser
+
+        return chain
 
     def get_model(self) -> ChatOllama:
         """Get the underlying LangChain model."""
