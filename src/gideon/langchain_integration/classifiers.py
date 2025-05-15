@@ -1,14 +1,14 @@
 from enum import Enum
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 
-from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from pydantic import BaseModel, Field
 from langchain_core.documents import Document
 
-from ..constants import DocType, TOPICS
+from .llm_services import LLMServiceFactory, LLMServiceType
+from ..constants import DocType
 
 class DocumentMetadata(BaseModel):
     author: str | None = Field(description="Document author name")
@@ -18,92 +18,6 @@ class DocumentMetadata(BaseModel):
     company: str | None = Field(description="Company name for commercial documents")
     month: str | None = Field(description="Month of document creation (3-letter code)")
     day: str | None = Field(description="Day of document creation (2-digit)")
-
-class DocumentClassification:
-    def __init__(self, model_name: str = "llama3.1"):
-        """Initialize the document classifier with a specific model."""
-        self.model = ChatOllama(
-            model=model_name,
-            temperature=0,
-            format="json"
-        )
-        
-        self.prompt = ChatPromptTemplate.from_template(
-            """You are a document classification expert. Your task is to analyze the content of a document and determine its type.
-            
-            Document Content:
-            {content}
-            
-            Based on the content, classify this document into one of the following categories:
-            - {categories}
-            
-            Return a JSON object with the following structure:
-            {{
-                "type": "the most appropriate category",
-                "confidence": "a number between 0 and 1 indicating your confidence in the classification",
-                "reasoning": "a brief explanation of why you chose this category"
-            }}
-            
-            JSON Response:"""
-        )
-        
-        self.chain = (
-            {"content": RunnablePassthrough(), "categories": lambda _: ", ".join(DocType.list())}
-            | self.prompt
-            | self.model
-            | JsonOutputParser()
-        )
-    
-    async def classify(self, content: str) -> Dict[str, Any]:
-        """Classify a document based on its content."""
-        try:
-            result = await self.chain.ainvoke(content)
-            return result
-        except Exception as e:
-            print(f"Error in classification: {str(e)}")
-            return {
-                "type": DocType.UNKNOWN.value,
-                "confidence": 0.0,
-                "reasoning": f"Classification failed: {str(e)}"
-            }
-
-class DocumentAgent:
-    def __init__(self, model_name: str = "llama3.1"):
-        """Initialize the document agent with a specific model."""
-        self.classifier = DocumentClassification(model_name)
-    
-    async def process_document(self, file_path: str) -> Dict[str, Any]:
-        """Process a single document and return classification results."""
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-            
-            classification = await self.classifier.classify(content)
-            return {
-                "file_path": file_path,
-                "classification": classification
-            }
-        except Exception as e:
-            print(f"Error processing {file_path}: {str(e)}")
-            return {
-                "file_path": file_path,
-                "error": str(e)
-            }
-    
-    async def process_directory(self, directory: str) -> List[Dict[str, Any]]:
-        """Process all documents in a directory and return results."""
-        from pathlib import Path
-        from .utils import DirWalker
-        
-        results = []
-        walker = DirWalker()
-        
-        for file_path in walker.walk(directory):
-            if file_path.suffix.lower() in ['.txt', '.md', '.pdf']:
-                result = await self.process_document(str(file_path))
-                results.append(result)
-        
-        return results
 
 class DocumentType(str, Enum):
     ARTICLE = "Art"
@@ -115,28 +29,41 @@ class DocumentType(str, Enum):
     PERSONAL_DOCUMENT = "PersonalDoc"
 
 class DocumentClassifier:
-    def __init__(self):
-        self.model = ChatOllama(
-            model="deepseek-coder:1.3b",
-            temperature=0,
-            format="json"
+    """Classifier for document types."""
+    
+    def __init__(self, service_type: LLMServiceType = LLMServiceType.OLLAMA,
+                 service_config: Optional[Dict[str, Any]] = None):
+        """Initialize the document classifier.
+        
+        Args:
+            service_type: Type of LLM service to use
+            service_config: Configuration for the LLM service
+        """
+        template = (
+            "You are a document classification expert. Your task is to analyze "
+            "the content of a document and determine its type."
+        )
+        
+        self.llm_service = LLMServiceFactory.create(
+            service_type,
+            config=service_config or {"model_name": "deepseek-coder:1.3b"}
         )
         
         self.prompt = ChatPromptTemplate.from_template(
-            """You are a document classification expert. Your task is to analyze the content of a document and determine its type.
+            f"""{template}
             
             Document Content:
-            {content}
+            {{content}}
             
             Based on the content, classify this document into one of the following categories:
-            - {categories}
+            - {{categories}}
             
             Return a JSON object with the following structure:
-            {{
+            {{{{
                 "type": "the most appropriate category",
                 "confidence": "a number between 0 and 1 indicating your confidence in the classification",
                 "reasoning": "a brief explanation of why you chose this category"
-            }}
+            }}}}
             
             JSON Response:"""
         )
@@ -144,7 +71,7 @@ class DocumentClassifier:
         self.chain = (
             {"content": RunnablePassthrough(), "categories": lambda _: ", ".join(DocType.list())}
             | self.prompt
-            | self.model
+            | self.llm_service.get_model()
             | JsonOutputParser()
         )
     

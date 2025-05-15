@@ -2,7 +2,6 @@ import os
 import platform
 import signal
 import subprocess
-from pathlib import Path
 from gideon.utils.bcolors import print_info
 
 

@@ -18,7 +18,7 @@ class DocumentInfo:
 console = Console()
 
 
-class RenamerAgent:
+class RenameWizard:
     def __init__(
         self,
         service_type: LLMServiceType = LLMServiceType.OLLAMA,
@@ -40,8 +40,13 @@ class RenamerAgent:
                 (
                     "system",
                     """
+                        +++SchemaOutput(format=json, schema=strict)
+                        +++Precision(level=high)
+                        +++RuleFollowing(priority=absolute)
+                        +++ExtractMetadata(fields=author,year,title,topic)
+                        
                         You are a document analysis expert. Extract key information from the document content.
-                        Return a JSON object with metadata.
+                        
                         Return a JSON object with exactly these fields:
                         {
                             "author": "AuthorName",
@@ -49,12 +54,13 @@ class RenamerAgent:
                             "title": "DocumentTitle",
                             "topic": "MainTopic"
                         }
+                        
                         Rules:
                         1. Author must be a single capitalized name (use first author if multiple)
                         2. Year must be exactly 4 digits or empty string if not found
                         3. Title must be a single capitalized name (use first title if multiple)
                         4. Topic must be a single capitalized name (use first topic if multiple)
-                        5. If any field is not found, return an empty string for that field.
+                        5. If any field is not found, return an empty string for that field
                         6. All strings must use double quotes
                         7. Return only the JSON object, no other text
                     """,
@@ -91,5 +97,9 @@ class RenamerAgent:
             console.print(f"[red]Error analyzing document: {str(e)}[/]")
             return None
 
+    def generate_filename(self, doc_info: DocumentInfo) -> str:
+        """Generate a standardized filename from document information."""
+        return f"{doc_info.author}.{doc_info.year}.{doc_info.title}.{doc_info.topic}.pdf"
 
-renamer_agent = RenamerAgent()
+
+rename_wizard = RenameWizard()

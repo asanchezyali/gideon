@@ -1,7 +1,7 @@
 import asyncio
 from pathlib import Path
-from typing import Optional, List, Tuple
 import re
+import warnings
 
 try:
     import typer
@@ -9,25 +9,18 @@ try:
     from rich.table import Table
     from rich.panel import Panel
     from rich.tree import Tree
-    from rich.prompt import Prompt, Confirm
     from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
 except ImportError:
     print("Installing required packages...")
     raise ImportError("Please install required packages: typer[all] rich")
 
 from .langchain_integration.agent import DocumentAgent
-from .dir_walker import DirWalker
-from .rename_files import rename_file, validate_filename, show_options
+from .dir_walker import DirectoryWalker
+from .rename_files import rename_file, show_options, validate_filename
 from .delete_duplicated_files import find_duplicates
 from .constants import DocType
-from .langchain_integration.document_processor import DocumentProcessor
 from .langchain_integration.renaming_agents import renaming_agent
-from langchain_ollama import OllamaLLM
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-import json
 from PyPDF2 import PdfReader
-import warnings
 
 # Suppress PyPDF2 warnings
 warnings.filterwarnings('ignore', category=UserWarning, module='PyPDF2')
@@ -56,8 +49,10 @@ app.add_typer(duplicates_app, name="duplicates", help="Manage duplicates")
 
 def process_manual(directory: Path):
     """Process files manually using the existing system."""
-    dir_walker = DirWalker()
-    dir_walker.process_directory(directory)
+    dir_walker = DirectoryWalker(directory)
+    for file in dir_walker.walk():
+        # Process each file as needed
+        pass
 
 def _create_directory_tree(directory: Path) -> Tree:
     """Create a tree visualization of the directory structure."""
@@ -88,7 +83,10 @@ async def process_automated(directory: Path, auto_delete: bool = False) -> None:
     results = await agent.process_directory()
     
     if not results:
-        console.print("\n[red]No documents were processed. Check if there are any supported files in the directory.[/red]")
+        console.print(
+            "\n[red]No documents were processed. "
+            "Check if there are any supported files in the directory.[/red]"
+        )
         return
     
     # Display results in a table
@@ -465,31 +463,6 @@ def normalize_filename(filename: str) -> str:
         normalized_parts.append('Unknown')
     
     return '.'.join(normalized_parts) + '.pdf'
-
-def validate_filename(filename: str) -> Tuple[bool, str]:
-    """Validate a filename against our standards."""
-    # Check basic structure
-    if not filename.endswith('.pdf'):
-        return False, "Filename must end with .pdf"
-        
-    parts = filename[:-4].split('.')  # Remove .pdf and split
-    if len(parts) < 4:
-        return False, "Filename must have at least Author.Year.Title.Topic"
-        
-    # Check author format
-    if not re.match(r'^[A-Z][a-zA-Z]+(_[A-Z][a-zA-Z]+)*$', parts[0]):
-        return False, "Author name must be capitalized and use underscores for multiple authors"
-        
-    # Check year format
-    if not re.match(r'^\d{4}$', parts[1]):
-        return False, "Year must be 4 digits"
-        
-    # Check title and topic format
-    for part in parts[2:]:
-        if not re.match(r'^[A-Z][a-zA-Z]+$', part):
-            return False, "Title and topic must be capitalized words without spaces"
-            
-    return True, "Valid filename"
 
 if __name__ == "__main__":
     app()

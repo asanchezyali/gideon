@@ -1,7 +1,5 @@
+"""File renaming functionality."""
 import os
-import signal
-import subprocess
-import platform
 from pathlib import Path
 
 from gideon.validators import validate_author
@@ -14,7 +12,7 @@ from gideon.validators import validate_company
 from gideon.validators import validate_name
 from gideon.validators import validators
 from gideon.constants import DocType, TOPICS, EXCLUDE_PROJECT_DIR
-from gideon.dir_walker import DirWalker
+from gideon.dir_walker import DirectoryWalker
 from gideon.utils.bcolors import print_info, print_header, print_success
 from gideon.utils.managers import open_file, close_file
 
@@ -192,30 +190,35 @@ def delete_file(file):
         os.remove(file)
 
 
-def change_spaces_with_underscores(dir_path):
+def change_spaces_with_underscores(dir_path: str | Path) -> None:
     print_header("Starting change spaces with underscores...")
-    walker = DirWalker(dir_excludes=EXCLUDE_PROJECT_DIR)
-    for file in walker.process_directory(dir_path):
-        directory = os.path.dirname(file)
-        filename = os.path.basename(file)
-        new_filename = filename.replace(" ", "_")
-        new_file = os.path.join(directory, new_filename)
-        os.rename(file, new_file)
+    dir_path = Path(dir_path)
+    walker = DirectoryWalker(dir_path, dir_excludes=EXCLUDE_PROJECT_DIR)
+    
+    for file in walker.walk():
+        new_filename = file.name.replace(" ", "_")
+        new_path = file.parent / new_filename
+        file.rename(new_path)
+        
     print_success("Finished changing spaces with underscores!")
 
 
-def rename_all_files(dir_path):
+def rename_all_files(dir_path: str | Path) -> None:
     print_header("Starting rename files...")
-    walker = DirWalker(dir_excludes=EXCLUDE_PROJECT_DIR)
-    for file in walker.process_directory(dir_path):
-        filename = get_filename(file)
-        if validate_filename(filename):
+    dir_path = Path(dir_path)
+    walker = DirectoryWalker(dir_path, dir_excludes=EXCLUDE_PROJECT_DIR)
+    
+    for file in walker.walk():
+        if validate_filename(file.name):
             continue
+            
         process = open_file(file)
-        show_options(filename)
+        show_options(file.name)
         option = int(input("Option: "))
+        
         while option not in range(1, DocType.total_types() + 3):
             option = int(input("Option: "))
+            
         if option == DocType.total_types() + 1:
             close_file(process)
             delete_file(file)
@@ -224,11 +227,13 @@ def rename_all_files(dir_path):
             close_file(process)
             print_info("Exiting...")
             break
+            
         close_file(process)
-        renamed = set_filename(option, file, filename)
+        renamed = set_filename(option, file, file.name)
         while not renamed:
-            renamed = set_filename(option, file, filename)
+            renamed = set_filename(option, file, file.name)
         print_success("File renamed successfully!")
+        
     print_success("Finished renaming files!")
 
 

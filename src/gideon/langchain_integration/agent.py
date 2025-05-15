@@ -1,28 +1,20 @@
 from pathlib import Path
-from typing import List, Dict, Any, AsyncIterator
+from typing import List, Dict, Any
 import asyncio
 from enum import Enum
-import json
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn
-from rich.live import Live
-from rich.panel import Panel
 from rich.table import Table
 import warnings
 from PyPDF2 import PdfReader
-import io
 
 from langchain_ollama import OllamaLLM, OllamaEmbeddings
-from langchain_core.callbacks import AsyncCallbackHandler
-from langchain_core.output_parsers import StrOutputParser
 from langchain_core.documents import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import PyPDFLoader, TextLoader
-from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_community.document_loaders import TextLoader
 
 from .document_processor import DocumentProcessor
 from .classifiers import DocumentClassifier, DocumentType
-from ..constants import DocType
 
 console = Console()
 

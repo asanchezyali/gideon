@@ -5,7 +5,7 @@ from gideon.constants import MONTHS, TOPICS, DocType, FORMAT_NORMAL_DOC, FORMAT_
 def validate_title(title):
     if len(title.split(" ")) > 10:
         print_error(f"{title} is not a valid title")
-        print_info(f"Expected format: at least 10 words for title")
+        print_info("Expected format: at least 10 words for title")
         return False
     return True
 
@@ -13,7 +13,7 @@ def validate_title(title):
 def validate_company(company):
     if len(company.split(" ")) > 4:
         print_error(f"{company} is not a valid company name")
-        print_info(f"Expected format: at least 4 words for company name")
+        print_info("Expected format: at least 4 words for company name")
         return False
     return True
 
@@ -21,7 +21,7 @@ def validate_company(company):
 def validate_name(name):
     if len(name.split(" ")) > 4:
         print_error(f"{name} is not a valid name")
-        print_info(f"Expected format: at least 4 words for name")
+        print_info("Expected format: at least 4 words for name")
         return False
     return True
 
@@ -51,12 +51,12 @@ def validate_day(day):
 def validate_author(author):
     if len(author.split(" ")) > 4:
         print_error(f"{author} is not a valid author")
-        print_info(f"Expected format: at least 4 words for author")
+        print_info("Expected format: at least 4 words for author")
         return False
 
     if "." in author:
         print_error(f"{author} is not a valid author")
-        print_info(f"Expected format: no points in author")
+        print_info("Expected format: no points in author")
         return False
     return True
 

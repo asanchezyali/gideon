@@ -1,7 +1,6 @@
 import hashlib
 from pathlib import Path
-from typing import List, Set, Optional
-import asyncio
+from typing import List, Set, Optional, Dict, Any
 from PyPDF2 import PdfReader
 from langchain_community.document_loaders import (
     PyPDFLoader,
@@ -95,22 +94,15 @@ class DocumentProcessor:
             
         return splitter.split_documents(documents)
     
-    def extract_metadata(self, document: Document) -> dict:
-        """Extract relevant metadata from document content."""
+    def extract_metadata(self, document: Document) -> Dict[str, Any]:
+        """Extract metadata from a document."""
         metadata = document.metadata.copy()
-        
-        # Add content statistics
-        content_lines = document.page_content.split('\n')
-        metadata.update({
-            "source": str(Path(metadata.get("source", "")).name),
-            "line_count": len(content_lines),
-            "char_count": len(document.page_content),
-            "word_count": len(document.page_content.split())
-        })
         
         # Add position information if available
         if "start_index" in metadata:
-            metadata["content_range"] = f"{metadata['start_index']}-{metadata['start_index'] + len(document.page_content)}"
+            start = metadata['start_index']
+            end = start + len(document.page_content)
+            metadata["content_range"] = f"{start}-{end}"
         
         return metadata
     

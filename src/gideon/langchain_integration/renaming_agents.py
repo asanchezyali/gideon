@@ -1,13 +1,12 @@
+"""Document renaming agent using LLM services."""
 from typing import Dict, Any, Optional
-from langchain_ollama import OllamaLLM
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-import json
-import re
 from rich.console import Console
-from rich.panel import Panel
 from rich.table import Table
 from rich.progress import Progress, SpinnerColumn, TextColumn
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import JsonOutputParser
+
+from .llm_services.factory import LLMServiceFactory, LLMServiceType
 
 # Configure rich console
 console = Console()
@@ -23,65 +22,51 @@ class DocumentInfo:
 class RenamingAgent:
     """Agent that analyzes documents and generates standardized filenames."""
     
-    def __init__(self):
-        self.llm = OllamaLLM(model="llama3.1")
-        self.prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a document analysis expert. Extract key information from the document content.
-            
-            Return a JSON object with exactly these fields:
-            {{
-                "author": "AuthorName",
-                "year": "YYYY",
-                "title": "DocumentTitle",
-                "topic": "MainTopic"
-            }}
-            
-            Rules:
-            1. Author must be a single capitalized name (use first author if multiple)
-               - If no author is found, use an empty string ""
-            2. Year must be exactly 4 digits
-               - If no year is found, use an empty string ""
-            3. Title must be in camelCase without spaces (e.g., "GeometricRelationsInAnArbitraryMetricSpace")
-               - If no title is found, use an empty string ""
-            4. Topic must be a single word in camelCase describing the main subject
-               - If no topic is found, use an empty string ""
-            5. All strings must be in double quotes
-            6. No comments or explanations
-            
-            Example:
-            {{
-                "author": "Schuller",
-                "year": "2013",
-                "title": "GeometricAnatomyTheoreticalPhysics",
-                "topic": "DifferentialGeometry"
-            }}"""),
-            ("user", "Analyze this document: {content}")
+    def __init__(
+        self,
+        service_type: LLMServiceType = LLMServiceType.OLLAMA,
+        service_config: Optional[Dict[str, Any]] = None
+    ):
+        """Initialize the renaming agent with configurable LLM service."""
+        self.llm_service = LLMServiceFactory.create(service_type, service_config or {})
+        
+        # Define output schema for the parser
+        self.output_schema = {
+            "type": "object",
+            "properties": {
+                "author": {"type": "string"},
+                "year": {"type": "string"},
+                "title": {"type": "string"},
+                "topic": {"type": "string"}
+            },
+            "required": ["author", "year", "title", "topic"]
+        }
+        
+        # Define the document analysis prompt template
+        self.analysis_prompt = ChatPromptTemplate.from_messages([
+            ("system", """You are a document analysis expert. Extract key information from the document content. \
+Return a JSON object with metadata.
+
+Return a JSON object with exactly these fields:
+{
+    "author": "AuthorName",
+    "year": "YYYY",
+    "title": "DocumentTitle",
+    "topic": "MainTopic"
+}
+
+Rules:
+1. Author must be a single capitalized name (use first author if multiple)
+2. Year must be exactly 4 digits or empty string if not found
+3. Title must be in camelCase without spaces
+4. Topic must be a single word in camelCase describing the main subject
+5. All strings must use double quotes
+6. Return only the JSON object, no other text"""),
+            ("human", "{content}")
         ])
-        self.chain = self.prompt | self.llm | StrOutputParser()
-    
-    def _extract_json(self, text: str) -> Optional[Dict[str, Any]]:
-        """Extract JSON from text response."""
-        try:
-            console.print(f"\n[bold blue]Model Response:[/bold blue]")
-            console.print(Panel(text, title="Raw Response", border_style="blue"))
-            
-            # Find JSON-like content
-            match = re.search(r'\{.*\}', text, re.DOTALL)
-            if not match:
-                console.print("[red]No JSON object found in response[/red]")
-                return None
-                
-            # Clean up the match
-            json_str = match.group(0)
-            json_str = re.sub(r'//.*$', '', json_str, flags=re.MULTILINE)  # Remove comments
-            json_str = re.sub(r'\s+', ' ', json_str)  # Normalize whitespace
-            
-            console.print(f"\n[bold green]Extracted JSON:[/bold green]")
-            console.print(Panel(json_str, title="Parsed JSON", border_style="green"))
-            return json.loads(json_str)
-        except Exception as e:
-            console.print(f"[red]Error extracting JSON: {str(e)}[/red]")
-            return None
+        
+        # Create output parser for JSON responses
+        self.json_parser = JsonOutputParser()
     
     def _normalize_author(self, text: str) -> str:
         """Normalize author name by removing accents and ensuring proper capitalization."""
@@ -93,7 +78,7 @@ class RenamingAgent:
         text = text.replace('ç', 'c').replace('ß', 'ss')
         
         # Remove any remaining special characters
-        text = re.sub(r'[^a-zA-Z0-9]', '', text)
+        text = ''.join(c for c in text if c.isalnum())
         
         # Ensure first letter is uppercase
         if text:
@@ -109,11 +94,8 @@ class RenamingAgent:
         text = text.replace('ë', 'e').replace('ï', 'i').replace('ÿ', 'y')
         text = text.replace('ç', 'c').replace('ß', 'ss')
         
-        # Remove any remaining special characters except letters and numbers
-        text = re.sub(r'[^a-zA-Z0-9]', ' ', text)
-        
-        # Split into words and capitalize each word
-        words = text.split()
+        # Split into words
+        words = ''.join(c for c in text if c.isalnum() or c.isspace()).split()
         if not words:
             return ""
             
@@ -142,20 +124,15 @@ class RenamingAgent:
                 analysis["author"] = "UnknownAuthor"
                 console.print("[yellow]No author found. Using 'UnknownAuthor'[/yellow]")
             else:
-                # Take first author if multiple
                 author = analysis["author"].split("_")[0].split()[0]
                 if not author:
                     analysis["author"] = "UnknownAuthor"
-                    console.print("[yellow]Invalid author format. Using 'UnknownAuthor'[/yellow]")
                 else:
                     analysis["author"] = self._normalize_author(author)
             
-            if not analysis["year"] or analysis["year"].strip() == "" or analysis["year"].lower() in ["null", "n/a", "unknown"]:
+            if not analysis["year"] or not analysis["year"].strip().isdigit():
                 analysis["year"] = "Unknown"
-                console.print("[yellow]No year found. Using 'Unknown'[/yellow]")
-            elif not re.match(r'^\d{4}$', str(analysis["year"])):
-                console.print(f"[yellow]Invalid year format: {analysis['year']}. Using 'Unknown'[/yellow]")
-                analysis["year"] = "Unknown"
+                console.print("[yellow]No valid year found. Using 'Unknown'[/yellow]")
             
             if not analysis["title"] or analysis["title"].strip() == "":
                 analysis["title"] = "UntitledDocument"
@@ -187,18 +164,23 @@ class RenamingAgent:
         try:
             console.print(f"\n[bold yellow]Analyzing file: {original_name}[/bold yellow]")
             
-            # Get response from LLM
+            # Create chain with output parser
+            chain = await self.llm_service.create_chain(
+                self.analysis_prompt,
+                self.json_parser
+            )
+            
+            # Process document
             with Progress(
                 SpinnerColumn(),
                 TextColumn("[progress.description]{task.description}"),
                 console=console
             ) as progress:
                 task = progress.add_task("Analyzing document...", total=None)
-                result = await self.chain.ainvoke({"content": content[:5000]})
+                analysis = await chain.ainvoke({"content": content[:5000]})
                 progress.update(task, completed=True)
             
-            # Extract and validate JSON
-            analysis = self._extract_json(result)
+            # Validate and normalize results
             if not analysis or not self._validate_analysis(analysis):
                 return None
             
@@ -218,4 +200,4 @@ class RenamingAgent:
         return f"{doc_info.author}.{doc_info.year}.{doc_info.title}.{doc_info.topic}.pdf"
 
 # Create a singleton instance of the agent
-renaming_agent = RenamingAgent() 
+renaming_agent = RenamingAgent()

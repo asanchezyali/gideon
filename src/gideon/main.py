@@ -4,7 +4,7 @@ import typer
 from rich.console import Console
 from rich.tree import Tree
 from pypdf import PdfReader
-from .langchain_integration.renamer_agents import renamer_agent
+from .langchain_integration.renamer_agents import rename_wizard
 
 console = Console()
 app = typer.Typer(help="Gideon CLI - AI-CLI for file organization")
@@ -42,11 +42,11 @@ async def _rename_file(file_path: Path) -> str | None:
         if not content:
             console.print(f"[yellow]No content extracted from {file_path.name}[/yellow]")
             return None
-        doc_info = await renamer_agent.analyze_document(content, file_path.name)
+        doc_info = await rename_wizard.analyze_document(content, file_path.name)
         if not doc_info:
             console.print(f"[yellow]No document information extracted from {file_path.name}[/yellow]")
             return None
-        new_name = renamer_agent.generate_filename(doc_info)
+        new_name = rename_wizard.generate_filename(doc_info)
         new_path = file_path.parent / new_name
 
         if new_path != file_path:

@@ -1,17 +1,25 @@
 import hashlib
 import os
 from pathlib import Path
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 
-from gideon.dir_walker import DirWalker
-from gideon.utils.bcolors import print_header, print_info, print_success
+from .dir_walker import DirectoryWalker
+from .utils.bcolors import print_header, print_info, print_success
 
 
-def remove_duplicate_files(dir_path, auto_delete=False):
+def remove_duplicate_files(dir_path: str | Path, auto_delete: bool = False) -> None:
+    """Remove duplicate files from a directory.
+    
+    Args:
+        dir_path: Directory to process
+        auto_delete: Whether to delete duplicates automatically
+    """
+    dir_path = Path(dir_path)
     print_header(f"Removing duplicate files in {dir_path}")
     seen = set()
-    walker = DirWalker()
-    for file in walker.process_directory(dir_path):
+    walker = DirectoryWalker(dir_path)
+    
+    for file in walker.walk():
         with open(file, "rb") as f:
             file_hash = hashlib.md5(f.read()).hexdigest()
         if file_hash in seen:
@@ -29,9 +37,8 @@ def remove_duplicate_files(dir_path, auto_delete=False):
     print_info("Finished removing duplicate files!")
 
 
-def find_duplicates(directory: str, dir_excludes: List[str] = None) -> List[Tuple[str, str]]:
-    """
-    Find duplicate files in a directory.
+def find_duplicates(directory: str | Path, dir_excludes: Optional[List[str]] = None) -> List[Tuple[Path, Path]]:
+    """Find duplicate files in a directory.
     
     Args:
         directory: Directory to search for duplicates
@@ -40,21 +47,22 @@ def find_duplicates(directory: str, dir_excludes: List[str] = None) -> List[Tupl
     Returns:
         List of tuples containing (original_file, duplicate_file)
     """
+    directory = Path(directory)
     print_header("Starting duplicate files search...")
     
     # Create a dictionary to store file hashes
-    file_hashes: Dict[str, str] = {}
-    duplicates: List[Tuple[str, str]] = []
+    file_hashes: Dict[str, Path] = {}
+    duplicates: List[Tuple[Path, Path]] = []
     
-    # Initialize DirWalker
-    walker = DirWalker(dir_excludes=dir_excludes)
+    # Initialize DirectoryWalker
+    walker = DirectoryWalker(directory, dir_excludes=dir_excludes)
     
     # Process each file in the directory
-    for file_path in walker.process_directory(directory):
+    for file_path in walker.walk():
         try:
             # Calculate file hash
             with open(file_path, 'rb') as f:
-                file_hash = hash(f.read())
+                file_hash = hashlib.md5(f.read()).hexdigest()
             
             # Check if we've seen this hash before
             if file_hash in file_hashes:
@@ -73,9 +81,8 @@ def find_duplicates(directory: str, dir_excludes: List[str] = None) -> List[Tupl
     return duplicates
 
 
-def delete_duplicates(directory: str, dir_excludes: List[str] = None) -> None:
-    """
-    Delete duplicate files in a directory.
+def delete_duplicates(directory: str | Path, dir_excludes: Optional[List[str]] = None) -> None:
+    """Delete duplicate files in a directory.
     
     Args:
         directory: Directory to search for duplicates
