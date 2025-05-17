@@ -3,8 +3,8 @@ from pathlib import Path
 import typer
 from rich.console import Console
 from rich.tree import Tree
-from pypdf import PdfReader
-from .langchain_integration.renamer_agents import rename_wizard
+from .langchain_integration.renamer_agent import rename_wizard
+from langchain_community.document_loaders import PyPDFLoader
 
 console = Console()
 app = typer.Typer(help="Gideon CLI - AI-CLI for file organization")
@@ -23,13 +23,12 @@ def rename_file(
     asyncio.run(rename_files_with_ai(directory))
 
 
-# TODO: Move this to a separate module
-def _extract_pdf_content(file_path: Path) -> str:
+async def _extract_pdf_content(file_path: Path) -> str:
     try:
-        reader = PdfReader(str(file_path))
+        reader = PyPDFLoader(str(file_path))
         content = []
-        for page in reader.pages[:5]:
-            content.append(page.extract_text())
+        async for page in reader.alazy_load():
+            content.append(page.page_content)
         return "\n".join(content)
     except Exception as e:
         console.print(f"[red]Error reading PDF file {file_path.name}: {e}[/red]")
@@ -38,7 +37,7 @@ def _extract_pdf_content(file_path: Path) -> str:
 
 async def _rename_file(file_path: Path) -> str | None:
     try:
-        content = _extract_pdf_content(file_path)
+        content = await _extract_pdf_content(file_path)
         if not content:
             console.print(f"[yellow]No content extracted from {file_path.name}[/yellow]")
             return None
@@ -63,15 +62,14 @@ async def rename_files_with_ai(directory: Path):
     console.print(_directory_tree(directory))
     files = list(directory.rglob("*.pdf"))
     if not files:
-        console.print("[yellow]No files found in the directory.[/yellow]")
+        console.print("[yellow]No PDF files found in the directory.[/yellow]")
         return
+    
     console.print(f"Found {len(files)} PDF files to rename.")
-    for file_path in files:
-        console.print(f"Processing file: {file_path.name}")
-        await _rename_file(file_path)
+    tasks = [_rename_file(file_path) for file_path in files]
+    await asyncio.gather(*tasks)
 
 
-# TODO: Move this to a separate module
 def _directory_tree(directory: Path) -> Tree:
     tree = Tree(f"[bold magenta]{directory.name}[/bold magenta]")
     for item in directory.iterdir():

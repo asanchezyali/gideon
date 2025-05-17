@@ -1,3 +1,0 @@
-"""
-Gideon - Utility functions
-""" 
