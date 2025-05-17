@@ -1,140 +1,112 @@
-# Gideon - Intelligent Document Organization System
+# Gideon
 
-Gideon is a powerful document organization system that uses artificial intelligence to automatically classify, rename, and organize your documents. It supports both automated and manual processing modes, making it flexible for various use cases.
+**Gideon** is an AI-powered CLI tool for intelligent file organization, focused on renaming academic documents (PDFs) using LLMs (Large Language Models) such as Ollama.  
+It is designed for local, privacy-friendly use, and is easily extensible for future LLM integrations.
+
+---
 
 ## Features
 
-- **Intelligent Document Classification**: Automatically identifies document types including:
-  - Academic Articles (Art)
-  - Books and E-books (Book)
-  - Theses and Dissertations (Theses)
-  - Commercial Documents (CommDoc)
-  - Legal Documents (LegalDoc)
-  - Non-Disclosure Agreements (NDA)
-  - Personal Documents (PersonalDoc)
+- **AI-powered PDF renaming**: Extracts metadata (authors, year, title, topic) and generates clean, consistent filenames.
+- **Modular architecture**: Easily add new LLM providers or agents.
+- **Rich CLI interface**: Beautiful output and flexible options.
+- **Local-first**: No cloud required; works with local LLMs like Ollama.
 
-- **Multiple LLM Support**: Supports multiple LLM services:
-  - Ollama (local models)
-  - Google Gemini
-  - Easily extensible to support more providers
-
-- **Smart Duplicate Detection**: Identifies and handles duplicate files using secure hash verification
-- **Metadata Extraction**: Automatically extracts metadata like authors, dates, titles, and topics
-- **Standardized File Naming**: Enforces consistent naming conventions based on document types
-- **Rich Terminal Interface**: Beautiful command-line interface with progress tracking and visual feedback
-- **Async Processing**: Handles multiple documents concurrently for better performance
+---
 
 ## Installation
 
-1. Ensure you have Python 3.10 or newer installed
-2. Clone this repository
-3. Install dependencies:
+**Requirements:**
+- Python 3.11+
+- [Ollama](https://ollama.com/) (for local LLMs, optional but recommended)
+
+**Install in development mode:**
 ```bash
+git clone https://github.com/yourusername/gideon.git
+cd gideon
 pip install -e .
 ```
 
-4. For Ollama support, ensure you have Ollama installed and running
-5. For Gemini support, set your API key:
-```bash
-export GOOGLE_API_KEY=your_api_key_here
-```
+---
 
 ## Usage
 
-Gideon can be used in two modes: automated (using AI) or manual. Here are the main commands:
-
-### Using LLM Services
-
-#### Ask a Question
-```bash
-# Using Ollama (default)
-gideon ask "What is the meaning of life?"
-
-# Using Gemini
-gideon ask "What is the meaning of life?" --service gemini
-
-# Using a specific model
-gideon ask "What is the meaning of life?" --service ollama --model codellama
-```
-
-#### Classify Documents
-```bash
-# Using Ollama
-gideon classify document.pdf
-
-# Using Gemini
-gideon classify document.pdf --service gemini
-```
-
-#### Get Structured JSON Responses
-```bash
-# Example schema
-gideon analyze-json "Analyze this text" '{"type": "string", "sentiment": "string", "confidence": "number"}' --service gemini
-```
-
-### Organize Documents (Recommended)
+### Basic Command
 
 ```bash
-gideon organize /path/to/documents --automated --auto-delete
+gideon rename auto ./documents/
 ```
 
-Options:
-- `--automated`: Use AI for automatic classification (default: True)
-- `--auto-delete`: Automatically remove duplicates (default: False)
+### With custom LLM options
 
-### Manual File Operations
-
-#### Rename Files
 ```bash
-gideon rename /path/to/documents
+gideon rename auto ./documents/ --llm-type ollama --model codellama --temperature 0.2
 ```
 
-#### Remove Duplicates
-```bash
-gideon duplicates /path/to/documents --auto-delete
+- `--llm-type`: The LLM backend to use (default: `ollama`)
+- `--model`: The model name (default: `llama2`)
+- `--temperature`: Sampling temperature for the LLM (default: `0.1`)
+
+### Example Output
+
+```
+Renaming files in ./documents using AI...
+Found 3 PDF files to rename.
+[green]Renamed: oldfile.pdf -> SmithAndOthers_2022_QuantumComputing_Physics.pdf[/green]
+...
 ```
 
-## File Naming Conventions
+---
 
-Gideon uses standardized naming conventions based on document types:
+## Project Structure
 
-### Academic Documents
-Format: `author.year.title.topic.type.ext`
-Example: `john_smith.2024.quantum_computing_basics.CompSci.Art.pdf`
+```
+gideon/
+│
+├── src/gideon/
+│   ├── cli/           # CLI commands and entry point
+│   ├── core/          # Global configuration
+│   ├── llm/           # LLM integrations (Ollama, etc.)
+│   ├── agents/        # Specialized agents (RenameWizard, etc.)
+│   ├── services/      # File and directory services
+│   └── utils/         # Utilities and parsers
+│
+├── pyproject.toml     # Project metadata and dependencies
+└── README.md
+```
 
-### Commercial Documents
-Format: `date.company.name.type.ext`
-Example: `2024_apr_15.ACME_CORP.project_proposal.CommDoc.pdf`
+---
 
-## Supported File Types
+## Extending
 
-- PDF Documents (.pdf)
-- Text Files (.txt)
-- Markdown Files (.md)
-- ReStructured Text (.rst)
+- **Add a new LLM**: Implement a new service in `src/gideon/llm/`, register it in the factory.
+- **Add a new agent**: Create a new agent in `src/gideon/agents/` and wire it into the CLI.
 
-## Supported Topics
+---
 
-Gideon supports various academic and professional topics including:
-- Mathematics (Math)
-- Computer Science (CompSci)
-- Machine Learning/AI (MLAI)
-- Physics (Phys)
-- Engineering (Eng)
-- Business (Bus)
-- Economics and Finance (EcoFin)
-- And many more...
+## Development
 
-## Requirements
+- Install dev dependencies:  
+  `pip install -e .[dev]`
+- Run linter:  
+  `ruff check src/`
+- Run tests:  
+  `pytest`
 
-- Python ≥ 3.10
-- Ollama (for AI-powered classification)
-- Additional dependencies listed in requirements.txt
-
-## Contributing
-
-We welcome contributions! Please check our contribution guidelines and feel free to submit pull requests.
+---
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT License
+
+---
+
+## Author
+
+Alejandro Sánchez Yalí  
+[asanchezyali@gmail.com](mailto:asanchezyali@gmail.com)
+
+---
+
+**Note:**  
+Gideon is under active development. Contributions and feedback are welcome!

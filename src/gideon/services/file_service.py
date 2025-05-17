@@ -10,18 +10,9 @@ console = Console()
 
 
 class FileService:
-    """Service for handling file operations."""
     
     @staticmethod
     async def extract_pdf_content(file_path: Path) -> str:
-        """Extract text content from a PDF file.
-        
-        Args:
-            file_path: Path to the PDF file
-            
-        Returns:
-            Extracted text content
-        """
         try:
             reader = PyPDFLoader(str(file_path))
             content = []
@@ -34,28 +25,10 @@ class FileService:
     
     @staticmethod
     def get_files_by_extension(directory: Path, extension: str = ".pdf") -> List[Path]:
-        """Get all files with a specific extension in a directory and its subdirectories.
-        
-        Args:
-            directory: Directory to search in
-            extension: File extension to look for
-            
-        Returns:
-            List of file paths
-        """
         return list(directory.rglob(f"*{extension}"))
     
     @staticmethod
     def rename_file(file_path: Path, new_name: str) -> Optional[Path]:
-        """Rename a file.
-        
-        Args:
-            file_path: Current file path
-            new_name: New filename
-            
-        Returns:
-            New file path if successful, None otherwise
-        """
         try:
             new_path = file_path.parent / new_name
             if new_path != file_path:
@@ -69,14 +42,6 @@ class FileService:
     
     @staticmethod
     def create_directory_tree(directory: Path) -> Tree:
-        """Create a rich Tree representation of a directory.
-        
-        Args:
-            directory: Directory to create tree for
-            
-        Returns:
-            Rich Tree object
-        """
         tree = Tree(f"[bold magenta]{directory.name}[/bold magenta]")
         for item in directory.iterdir():
             if item.is_dir():
