@@ -4,7 +4,6 @@ from pydantic_settings import BaseSettings
 
 
 class GideonSettings(BaseSettings):
-    """Global settings for Gideon."""
     
     # Base paths
     BASE_DIR: Path = Path(__file__).parent.parent.parent.parent

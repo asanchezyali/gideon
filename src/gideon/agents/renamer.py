@@ -9,7 +9,6 @@ from ..core.config import settings
 
 
 class DocumentInfo:
-    """Container for document metadata."""
 
     def __init__(self, authors: List[str], year: str, title: str, topic: str):
         self.authors = authors
@@ -19,19 +18,12 @@ class DocumentInfo:
 
 
 class RenameWizard:
-    """Agent for analyzing and renaming documents."""
 
     def __init__(
         self,
         service_type: LLMServiceType = LLMServiceType.OLLAMA,
         service_config: Optional[Dict[str, Any]] = None,
     ):
-        """Initialize the rename wizard.
-
-        Args:
-            service_type: Type of LLM service to use
-            service_config: Configuration for the LLM service
-        """
         self.llm_service = LLMServiceFactory.create(service_type, service_config)
         self.console = Console()
         self.json_parser = CleanJsonOutputParser()
@@ -116,15 +108,6 @@ class RenameWizard:
         )
 
     async def analyze_document(self, content: str, original_name: str) -> Optional[DocumentInfo]:
-        """Process a document and extract its information.
-
-        Args:
-            content: The document content to analyze
-            original_name: Original filename
-
-        Returns:
-            DocumentInfo object if successful, None otherwise
-        """
         try:
             self.console.print(f"[yellow]Analyzing document: {original_name}[/]")
             chain = await self.llm_service.create_chain(
@@ -148,7 +131,6 @@ class RenameWizard:
             return None
 
     def generate_filename(self, doc_info: DocumentInfo) -> str:
-        """Generate a filename from document info."""
         filename_parts = []
 
         authors_str = self._format_authors(doc_info.authors)
@@ -186,6 +168,5 @@ class RenameWizard:
 
     @staticmethod
     def _to_camel_case(text: str) -> str:
-        """Convert text to CamelCase."""
         words = text.split()
         return "".join(word.capitalize() for word in words)

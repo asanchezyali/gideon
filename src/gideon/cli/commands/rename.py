@@ -38,14 +38,6 @@ async def rename_files_with_ai(
     model: str,
     temperature: float,
 ):
-    """Rename files in a directory using AI analysis.
-    
-    Args:
-        directory: Directory containing files to rename
-        llm_type: Type of LLM to use
-        model: Model name to use
-        temperature: Temperature for LLM responses
-    """
     console.print(f"Renaming files in {directory} using AI...")
     
     # Initialize services
