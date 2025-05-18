@@ -2,14 +2,14 @@ from typing import Optional, List, Dict, Any
 from pathlib import Path
 from rich.console import Console
 from langchain_core.prompts import PromptTemplate
-
+from datetime import datetime
+import re
 from ..llm.factory import LLMServiceFactory, LLMServiceType
 from ..utils.parsers import CleanJsonOutputParser
 from ..core.config import settings
 
 
 class DocumentInfo:
-
     def __init__(self, authors: List[str], year: str, title: str, topic: str):
         self.authors = authors
         self.year = year
@@ -18,7 +18,6 @@ class DocumentInfo:
 
 
 class RenameWizard:
-
     def __init__(
         self,
         service_type: LLMServiceType = LLMServiceType.OLLAMA,
@@ -64,12 +63,6 @@ class RenameWizard:
                - Combinatorics
                - Computer Science
                - Physics
-               - Quantum Physics
-               - Quantum Computing
-               - Quantum Information
-               - Quantum Entanglement
-               - Quantum Teleportation
-               - Quantum Cryptography
                - Chemistry
                - Biology
                - Economics
@@ -81,17 +74,16 @@ class RenameWizard:
                - History
                - Literature
                - Arts
-               - Social Sciences
-               - Environmental Science
                - Law
                - Education
                - Marketing
                - Finance
                - Accounting
                - Management
-               - Information Systems
                - Artificial Intelligence
                - Machine Learning
+               - Data Science
+               - Software Engineering
                - Other
                Choose the SINGLE most appropriate topic from this list that best matches the document content.
                If uncertain, choose "Other".
@@ -145,6 +137,9 @@ class RenameWizard:
         topic_str = self._format_topic(doc_info.topic)
         filename_parts.append(topic_str)
 
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename_parts.append(timestamp)
+
         return "_".join(filename_parts) + ".pdf"
 
     def _format_authors(self, authors: List[str]) -> str:
@@ -152,19 +147,29 @@ class RenameWizard:
             return "UnknownAuthor"
 
         if len(authors) > 1:
-            first_author = self._to_camel_case(authors[0])
+            # Remove special characters from first author name before formatting
+            first_author = re.sub(r"[^\w\s]", "", authors[0])
+            first_author = self._to_camel_case(first_author)
             return f"{first_author}AndOthers"
         else:
-            return self._to_camel_case(authors[0])
+            # Remove special characters from single author name
+            clean_author = re.sub(r"[^\w\s]", "", authors[0])
+            return self._to_camel_case(clean_author)
 
     def _format_year(self, year: str) -> str:
-        return year if year else "UnknownYear"
+        return year[:4] if year else "UnknownYear"
 
     def _format_title(self, title: str) -> str:
-        return self._to_camel_case(title) if title else "UnknownTitle"
+        if not title:
+            return "UnknownTitle"
+        clean_title = re.sub(r"[^\w\s]", "", title)
+        return self._to_camel_case(clean_title)
 
     def _format_topic(self, topic: str) -> str:
-        return self._to_camel_case(topic) if topic else "UnknownTopic"
+        if not topic:
+            return "UnknownTopic"
+        clean_topic = re.sub(r"[^\w\s]", "", topic)
+        return self._to_camel_case(clean_topic)
 
     @staticmethod
     def _to_camel_case(text: str) -> str:
