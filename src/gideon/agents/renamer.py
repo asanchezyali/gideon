@@ -124,8 +124,8 @@ class RenameWizard:
             return DocumentInfo(
                 authors=result.get("authors", []),
                 year=str(result.get("year", "")),
-                title=str(result.get("title", UNKNOWN_TITLE)),
-                topic=str(result.get("topic", UNKNOWN_TOPIC)),
+                title=str(result.get("title", UNKNOWN_TITLE)) or UNKNOWN_TITLE,
+                topic=str(result.get("topic", UNKNOWN_TOPIC)) or UNKNOWN_TOPIC,
             )
 
         except Exception as e:
