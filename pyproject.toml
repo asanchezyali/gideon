@@ -1,17 +1,54 @@
-[tool.poetry]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
 name = "gideon"
 version = "0.1.0"
-description = "Artificially Intelligent Personal Assistant"
-authors = ["Alejandro Sánchez Yalí <asanchezyali@gmail.com>"]
-license = "MIT"
+description = "AI-powered CLI tool for file organization"
+authors = [
+    {name = "Alejandro Sánchez Yalí", email = "asanchezyali@gmail.com"}
+]
+dependencies = [
+    "typer",
+    "rich",
+    "langchain",
+    "langchain-community",
+    "langchain-core",
+    "pydantic",
+    "pydantic-settings",
+]
+requires-python = ">=3.11"
 readme = "README.md"
+license = {text = "MIT"}
 
-[tool.poetry.dependencies]
-python = "^3.10"
-typer = {extras = ["all"], version = "^0.6.1"}
-rich = "^12.6.0"
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.3.0",
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+]
 
+[project.scripts]
+gideon = "gideon.cli:app"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.hatch.build.targets.wheel]
+packages = ["src/gideon"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+# Enable pycodestyle ('E') and Pyflakes ('F') codes by default
+select = ["E", "F"]
+ignore = []
+fixable = ["E", "F"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore unused imports in __init__.py files
+"__init__.py" = ["F401"]

@@ -1,13 +1,112 @@
 # Gideon
 
-Welcome to Gideon, the terminal wizard for organizing files and directories!
+**Gideon** is an AI-powered CLI tool for intelligent file organization, focused on renaming academic documents (PDFs) using LLMs (Large Language Models) such as Ollama.  
+It is designed for local, privacy-friendly use, and is easily extensible for future LLM integrations.
 
-With Gideon, you can easily remove duplicate files, rename files, and organize them by topic. Simply navigate to the desired directory in your terminal and use one of the following commands:
+---
 
-- `duplicates [dir_path] [autodelete]`: removes duplicate files from the specified `dir_path`. Use the optional `autodelete` flag (True/False) to automatically delete duplicates.
-- `rename [dir_path]`: renames files in the specified `dir_path`.
-- `organize [dir_input] [dir_output]`: organizes files from the `dir_input` directory and places them in the `dir_output` directory.
+## Features
 
-To use Gideon, make sure to have the required dependencies installed and run the script with python app.py.
+- **AI-powered PDF renaming**: Extracts metadata (authors, year, title, topic) and generates clean, consistent filenames.
+- **Modular architecture**: Easily add new LLM providers or agents.
+- **Rich CLI interface**: Beautiful output and flexible options.
+- **Local-first**: No cloud required; works with local LLMs like Ollama.
 
-We hope you find Gideon useful in your file management tasks!
+---
+
+## Installation
+
+**Requirements:**
+- Python 3.11+
+- [Ollama](https://ollama.com/) (for local LLMs, optional but recommended)
+
+**Install in development mode:**
+```bash
+git clone https://github.com/yourusername/gideon.git
+cd gideon
+pip install -e .
+```
+
+---
+
+## Usage
+
+### Basic Command
+
+```bash
+gideon rename auto ./documents/
+```
+
+### With custom LLM options
+
+```bash
+gideon rename auto ./documents/ --llm-type ollama --model codellama --temperature 0.2
+```
+
+- `--llm-type`: The LLM backend to use (default: `ollama`)
+- `--model`: The model name (default: `llama2`)
+- `--temperature`: Sampling temperature for the LLM (default: `0.1`)
+
+### Example Output
+
+```
+Renaming files in ./documents using AI...
+Found 3 PDF files to rename.
+[green]Renamed: oldfile.pdf -> SmithAndOthers_2022_QuantumComputing_Physics.pdf[/green]
+...
+```
+
+---
+
+## Project Structure
+
+```
+gideon/
+│
+├── src/gideon/
+│   ├── cli/           # CLI commands and entry point
+│   ├── core/          # Global configuration
+│   ├── llm/           # LLM integrations (Ollama, etc.)
+│   ├── agents/        # Specialized agents (RenameWizard, etc.)
+│   ├── services/      # File and directory services
+│   └── utils/         # Utilities and parsers
+│
+├── pyproject.toml     # Project metadata and dependencies
+└── README.md
+```
+
+---
+
+## Extending
+
+- **Add a new LLM**: Implement a new service in `src/gideon/llm/`, register it in the factory.
+- **Add a new agent**: Create a new agent in `src/gideon/agents/` and wire it into the CLI.
+
+---
+
+## Development
+
+- Install dev dependencies:  
+  `pip install -e .[dev]`
+- Run linter:  
+  `ruff check src/`
+- Run tests:  
+  `pytest`
+
+---
+
+## License
+
+MIT License
+
+---
+
+## Author
+
+Alejandro Sánchez Yalí  
+[asanchezyali@gmail.com](mailto:asanchezyali@gmail.com)
+
+---
+
+**Note:**  
+Gideon is under active development. Contributions and feedback are welcome!
