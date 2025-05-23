@@ -1,6 +1,6 @@
 # Gideon
 
-**Gideon** is an AI-powered CLI tool for intelligent file organization, focused on renaming academic documents (PDFs) using LLMs (Large Language Models) such as Ollama.  
+**Gideon** is an AI-powered CLI tool for intelligent file organization, focused on renaming academic documents (PDFs) using LLMs (Large Language Models) such as Ollama, and removing duplicate files.  
 It is designed for local, privacy-friendly use, and is easily extensible for future LLM integrations.
 
 ---
@@ -8,6 +8,7 @@ It is designed for local, privacy-friendly use, and is easily extensible for fut
 ## Features
 
 - **AI-powered PDF renaming**: Extracts metadata (authors, year, title, topic) and generates clean, consistent filenames.
+- **Duplicate file removal**: Quickly find and remove duplicate PDF files in a directory.
 - **Modular architecture**: Easily add new LLM providers or agents.
 - **Rich CLI interface**: Beautiful output and flexible options.
 - **Local-first**: No cloud required; works with local LLMs like Ollama.
@@ -31,13 +32,13 @@ pip install -e .
 
 ## Usage
 
-### Basic Command
+### Rename Files with AI
 
 ```bash
 gideon rename auto ./documents/
 ```
 
-### With custom LLM options
+#### With custom LLM options
 
 ```bash
 gideon rename auto ./documents/ --llm-type ollama --model codellama --temperature 0.2
@@ -47,14 +48,23 @@ gideon rename auto ./documents/ --llm-type ollama --model codellama --temperatur
 - `--model`: The model name (default: `llama2`)
 - `--temperature`: Sampling temperature for the LLM (default: `0.1`)
 
-### Example Output
+### Remove Duplicate Files
 
+Remove duplicates in a directory:
+```bash
+gideon remove-duplicates ./documents/
 ```
-Renaming files in ./documents using AI...
-Found 3 PDF files to rename.
-[green]Renamed: oldfile.pdf -> SmithAndOthers_2022_QuantumComputing_Physics.pdf[/green]
-...
-```
+
+- This will scan for duplicate PDF files and remove them, keeping only one copy of each unique file.
+
+---
+
+## CLI Commands
+
+- `gideon rename auto <directory> [--llm-type TYPE] [--model MODEL] [--temperature FLOAT]`  
+  Rename PDF files in a directory using AI analysis.
+- `gideon remove-duplicates <directory>`  
+  Remove duplicate PDF files in a directory (default mode).
 
 ---
 
@@ -92,6 +102,10 @@ gideon/
   `ruff check src/`
 - Run tests:  
   `pytest`
+
+### Test Coverage
+- Tests for duplicate removal are located in `src/gideon/services/test_file_service.py` and use `pytest` for isolated, reliable testing.
+- Async tests for AI renaming are supported with `pytest-asyncio`.
 
 ---
 

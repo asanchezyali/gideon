@@ -1,16 +1,13 @@
 from pathlib import Path
 from typing import List, Optional
 from langchain_community.document_loaders import PyPDFLoader
-from rich.console import Console
 from rich.tree import Tree
-
+import hashlib
 from ..core.config import settings
-
-console = Console()
+from ..utils.bcolors import print_success, print_error
 
 
 class FileService:
-    
     @staticmethod
     async def extract_pdf_content(file_path: Path) -> str:
         try:
@@ -20,26 +17,26 @@ class FileService:
                 content.append(page.page_content)
             return "\n".join(content)
         except Exception as e:
-            console.print(f"[red]Error reading PDF file {file_path.name}: {e}[/red]")
+            print_error(f"Error reading PDF file {file_path.name}: {e}")
             return ""
-    
+
     @staticmethod
     def get_files_by_extension(directory: Path, extension: str = ".pdf") -> List[Path]:
         return list(directory.rglob(f"*{extension}"))
-    
+
     @staticmethod
     def rename_file(file_path: Path, new_name: str) -> Optional[Path]:
         try:
             new_path = file_path.parent / new_name
             if new_path != file_path:
                 file_path.rename(new_path)
-                console.print(f"[green]Renamed: {file_path.name} -> {new_name}[/green]")
+                print_success(f"Renamed: {file_path.name} -> {new_name}")
                 return new_path
             return file_path
         except Exception as e:
-            console.print(f"[red]Error renaming {file_path}: {str(e)}[/red]")
+            print_error(f"Error renaming {file_path}: {str(e)}")
             return None
-    
+
     @staticmethod
     def create_directory_tree(directory: Path) -> Tree:
         tree = Tree(f"[bold magenta]{directory.name}[/bold magenta]")
@@ -52,4 +49,19 @@ class FileService:
                     tree.add(f"[blue]{item.name}[/blue]")
                 else:
                     tree.add(f"[red]{item.name}[/red]")
-        return tree 
+        return tree
+
+    @staticmethod
+    def remove_duplicates(directory: Path) -> None:
+        files = FileService.get_files_by_extension(directory)
+        visited_files = set()
+        removed_files = 0
+        for file in files:
+            file_hash = hashlib.sha256(file.read_bytes()).hexdigest()
+            if file_hash in visited_files:
+                file.unlink()
+                print_success(f"Removed: {file.name}")
+                removed_files += 1
+            else:
+                visited_files.add(file_hash)
+        print_success(f"Removed {removed_files} duplicate files")
