@@ -1,10 +1,9 @@
 #!/usr/bin/env zsh
 
-# Read the model from .env or use default
 MODEL=$(grep "DEFAULT_LLM_MODEL" .env | cut -d'=' -f2 | tr -d '"' || echo "llama2")
 
 echo "Starting model services..."
-docker compose up -d
+docker model run ai/llama3.2:3B-Q4_K_M
 
 echo "Waiting for Ollama to initialize..."
 sleep 10
