@@ -9,6 +9,7 @@ It is designed for local, privacy-friendly use, and is easily extensible for fut
 
 - **AI-powered PDF renaming**: Extracts metadata (authors, year, title, topic) and generates clean, consistent filenames.
 - **Duplicate file removal**: Quickly find and remove duplicate PDF files in a directory.
+- **File organization**: Organize files into topic-based folders based on file naming conventions.
 - **Modular architecture**: Easily add new LLM providers or agents.
 - **Rich CLI interface**: Beautiful output and flexible options.
 - **Local-first**: No cloud required; works with local LLMs like Ollama.
@@ -57,6 +58,17 @@ gideon remove-duplicates ./documents/
 
 - This will scan for duplicate PDF files and remove them, keeping only one copy of each unique file.
 
+### Organize Files
+
+Organize files into topic-based folders:
+```bash
+gideon organize ./documents/
+```
+
+Options:
+- `--dry-run` or `-d`: Preview changes without actually moving files
+- `--ignore` or `-i`: Comma-separated list of directory patterns to ignore (e.g. '.git,.vscode')
+
 ---
 
 ## CLI Commands
@@ -65,6 +77,8 @@ gideon remove-duplicates ./documents/
   Rename PDF files in a directory using AI analysis.
 - `gideon remove-duplicates <directory>`  
   Remove duplicate PDF files in a directory (default mode).
+- `gideon organize <directory> [--dry-run] [--ignore PATTERNS]`  
+  Organize files into topic-based folders based on file naming conventions.
 
 ---
 
