@@ -1,9 +1,10 @@
+
 services:
-  model-runner:
-    image: ${DEFAULT_LLM_MODEL}
+  ollama:
+    image: ollama/ollama
     ports:
       - "11434:11434"
-    environment:
-      - LLM_TYPE=${DEFAULT_LLM_TYPE:-ollama}
-      - LLM_TEMPERATURE=${DEFAULT_LLM_TEMPERATURE:-0.1}
-      - MAX_CONTENT_LENGTH=${MAX_CONTENT_LENGTH:-5000}
+          
+networks:
+  default:
+    name: app-network
