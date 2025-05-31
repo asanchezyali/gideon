@@ -29,6 +29,14 @@ cd gideon
 pip install -e .
 ```
 
+**Configure Gideon:**
+
+Gideon can be configured by creating a `.env` file in the project root:
+```bash
+cp .env.example .env
+# Edit .env with your preferred settings
+```
+
 ---
 
 ## Usage
@@ -100,6 +108,20 @@ gideon/
 ```
 
 ---
+
+## Configuration
+
+Gideon can be configured using environment variables or a `.env` file in the project root. The available configuration options are:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DEFAULT_LLM_TYPE` | The default LLM backend to use | `ollama` |
+| `DEFAULT_LLM_MODEL` | The default model name | `deepseek-r1:latest` |
+| `DEFAULT_LLM_TEMPERATURE` | The default sampling temperature | `0.1` |
+| `MAX_CONTENT_LENGTH` | Maximum content length for processing | `5000` |
+| `SUPPORTED_EXTENSIONS` | File extensions that Gideon can process | `[".pdf"]` |
+
+An example configuration file is provided at `.env.example`.
 
 ## Extending
 

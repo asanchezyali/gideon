@@ -4,11 +4,12 @@ from pydantic import BaseModel
 
 from .base import BaseLLMService
 from .ollama import OllamaService
+from .ai_docker_model import AiDockerModelService
 
 
 class LLMServiceType(str, Enum):
     OLLAMA = "ollama"
-    # Add more LLM types here as they are implemented
+    AI_DOCKER_MODEL = "docker-model"
 
 
 class OllamaConfig(BaseModel):
@@ -16,13 +17,20 @@ class OllamaConfig(BaseModel):
     temperature: float = 0.1
 
 
+class AiDockerModelConfig(BaseModel):
+    model: str
+    temperature: float = 0.1
+
+
 class LLMServiceFactory:
     _service_map: Dict[LLMServiceType, Type[BaseLLMService]] = {
         LLMServiceType.OLLAMA: OllamaService,
+        LLMServiceType.AI_DOCKER_MODEL: AiDockerModelService,
     }
 
     _config_map = {
         LLMServiceType.OLLAMA: OllamaConfig,
+        LLMServiceType.AI_DOCKER_MODEL: AiDockerModelConfig,
     }
 
     @classmethod

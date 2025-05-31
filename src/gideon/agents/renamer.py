@@ -57,10 +57,10 @@ class DocumentInfo:
 class RenameWizard:
     def __init__(
         self,
-        service_type: LLMServiceType = LLMServiceType.OLLAMA,
+        llm_service_type: LLMServiceType = settings.DEFAULT_LLM_SERVICE_TYPE,
         service_config: Optional[Dict[str, Any]] = None,
     ):
-        self.llm_service = LLMServiceFactory.create(service_type, service_config)
+        self.llm_service = LLMServiceFactory.create(llm_service_type, service_config)
         self.console = Console()
         self.json_parser = CleanJsonOutputParser()
         self.analysis_prompt = PromptTemplate.from_template(
