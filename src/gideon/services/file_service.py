@@ -12,9 +12,9 @@ class FileService:
     async def extract_pdf_content(file_path: Path) -> str:
         try:
             reader = PyPDFLoader(str(file_path))
-            content = []
-            async for page in reader.alazy_load():
-                content.append(page.page_content)
+            content = reader.load()
+            metadata = content[0].metadata if content else {}
+            print(metadataj)
             return "\n".join(content)
         except Exception as e:
             print_error(f"Error reading PDF file {file_path.name}: {e}")

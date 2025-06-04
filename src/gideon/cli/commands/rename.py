@@ -66,7 +66,7 @@ async def rename_files_with_ai(
         if not content:
             return
 
-        doc_info = await rename_wizard.analyze_document(content, file_path.name)
+        doc_info = await rename_wizard.rename_document(content, file_path.name)
         if not doc_info:
             return
 

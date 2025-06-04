@@ -5,6 +5,7 @@ from langchain_core.prompts import PromptTemplate
 from ..utils.parsers import CleanJsonOutputParser
 from ..core.config import settings
 
+UNKNOWN_TOPIC = "Unknown_Topic"
 TOPIC_LIST = [
     "Mathematics",
     "Topology",
@@ -74,3 +75,14 @@ class ClassifierWizard:
         except Exception as e:
             self.console.log(f"Error during classification: {e}")
             return {"topic": "Unknown", "confidence": 0.0}
+
+    def _format_topic(self, topic: str) -> str:
+        if not topic:
+            return UNKNOWN_TOPIC
+        # Convert spaces to underscores
+        formatted_topic = "_".join(topic.split())
+        # Case-insensitive lookup in TOPIC_LIST
+        for valid_topic in TOPIC_LIST:
+            if formatted_topic.lower() == valid_topic.lower():
+                return valid_topic
+        return UNKNOWN_TOPIC

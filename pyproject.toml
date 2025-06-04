@@ -18,6 +18,8 @@ dependencies = [
     "pydantic",
     "pydantic-settings",
     "pytest-asyncio>=0.26.0",
+    "langchain-ollama>=0.3.3",
+    "langchain-openai>=0.3.17",
 ]
 requires-python = ">=3.11"
 readme = "README.md"

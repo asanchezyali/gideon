@@ -8,42 +8,7 @@ from ..utils.parsers import CleanJsonOutputParser
 from ..core.config import settings
 
 UNKNOWN_AUTHOR = "Unknown_Author"
-UNKNOWN_TOPIC = "Unknown_Topic"
 UNKNOWN_TITLE = "Unknown_Title"
-TOPIC_LIST = [
-    "Mathematics",
-    "Topology",
-    "Geometry",
-    "Algebra",
-    "Analysis",
-    "Probability",
-    "Statistics",
-    "Combinatorics",
-    "Computer Science",
-    "Physics",
-    "Chemistry",
-    "Biology",
-    "Economics",
-    "Business",
-    "Engineering",
-    "Medicine",
-    "Psychology",
-    "Philosophy",
-    "History",
-    "Literature",
-    "Arts",
-    "Law",
-    "Education",
-    "Marketing",
-    "Finance",
-    "Accounting",
-    "Management",
-    "Artificial Intelligence",
-    "Machine Learning",
-    "Data Science",
-    "Software Engineering",
-    "Other",
-]
 
 
 class DocumentInfo:
@@ -79,7 +44,6 @@ class RenameWizard:
                 "authors": ["Author Name 1", "Author Name 2"],
                 "year": "YYYY",
                 "title": "Document Title",
-                "topic": "Main Topic"
             }}            
             # Rules:
             1. Authors must be an array of names
@@ -88,10 +52,6 @@ class RenameWizard:
                - If no authors found, return an empty array []
             2. Year must be exactly 4 digits or empty string if not found
             3. Title should maintain its original formatting (as found in the document)
-            4. Topic must be selected from this predefined list:
-               {TOPIC_LIST}
-               Choose the SINGLE most appropriate topic from this list that best matches the document content.
-               If uncertain, choose "Other".
             5. If any field except authors is not found, return an empty string for that field
             6. All strings must use double quotes
             7. Return only the JSON object, no other text
@@ -99,21 +59,19 @@ class RenameWizard:
             9. DO NOT include any troubleshooting URLs or error messages
             10. Return ONLY the valid JSON object and nothing else
 
-            Document:
+            Document content:
+            {metadata}
             {content}
             """
         )
 
-    async def analyze_document(self, content: str, original_name: str) -> Optional[DocumentInfo]:
+    async def rename_document(self, content: str, original_name: str) -> Optional[DocumentInfo]:
         try:
             self.console.print(f"[yellow]Analyzing document: {original_name}[/]")
-            chain = await self.llm_service.create_chain(
-                prompt_template=self.prompt, output_parser=self.json_parser
-            )
+            chain = await self.llm_service.create_chain(prompt_template=self.prompt, output_parser=self.json_parser)
             result = await chain.ainvoke(
                 {
                     "content": content[: settings.MAX_CONTENT_LENGTH],
-                    "TOPIC_LIST": "\n".join(TOPIC_LIST),
                 }
             )
 
@@ -125,7 +83,6 @@ class RenameWizard:
                 authors=result.get("authors", []),
                 year=str(result.get("year", "")),
                 title=str(result.get("title", UNKNOWN_TITLE)) or UNKNOWN_TITLE,
-                topic=str(result.get("topic", UNKNOWN_TOPIC)) or UNKNOWN_TOPIC,
             )
 
         except Exception as e:
@@ -144,9 +101,6 @@ class RenameWizard:
 
         title_str = self._format_title(doc_info.title)
         filename_parts.append(title_str)
-
-        topic_str = self._format_topic(doc_info.topic)
-        filename_parts.append(topic_str)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename_parts.append(timestamp)
@@ -184,14 +138,3 @@ class RenameWizard:
             words[0] = words[0].capitalize()
         formatted_title = "_".join(words)
         return formatted_title
-
-    def _format_topic(self, topic: str) -> str:
-        if not topic:
-            return UNKNOWN_TOPIC
-        # Convert spaces to underscores
-        formatted_topic = "_".join(topic.split())
-        # Case-insensitive lookup in TOPIC_LIST
-        for valid_topic in TOPIC_LIST:
-            if formatted_topic.lower() == valid_topic.lower():
-                return valid_topic
-        return UNKNOWN_TOPIC

@@ -104,7 +104,7 @@ async def test_analyze_document_valid():
         return_value=MagicMock(create_chain=AsyncMock(return_value=mock_chain)),
     ):
         wizard = RenameWizard()
-        doc = await wizard.analyze_document("content", "file.pdf")
+        doc = await wizard.rename_document("content", "file.pdf")
         assert isinstance(doc, DocumentInfo)
         assert doc.authors == ["Alice Smith"]
         assert doc.year == "2022"
@@ -121,7 +121,7 @@ async def test_analyze_document_missing_fields():
         return_value=MagicMock(create_chain=AsyncMock(return_value=mock_chain)),
     ):
         wizard = RenameWizard()
-        doc = await wizard.analyze_document("content", "file.pdf")
+        doc = await wizard.rename_document("content", "file.pdf")
         assert isinstance(doc, DocumentInfo)
         assert doc.authors == []
         assert doc.year == ""
@@ -138,7 +138,7 @@ async def test_analyze_document_invalid_json():
         return_value=MagicMock(create_chain=AsyncMock(return_value=mock_chain)),
     ):
         wizard = RenameWizard()
-        doc = await wizard.analyze_document("content", "file.pdf")
+        doc = await wizard.rename_document("content", "file.pdf")
         assert doc is None
 
 
@@ -151,5 +151,5 @@ async def test_analyze_document_exception():
         return_value=MagicMock(create_chain=AsyncMock(return_value=mock_chain)),
     ):
         wizard = RenameWizard()
-        doc = await wizard.analyze_document("content", "file.pdf")
+        doc = await wizard.rename_document("content", "file.pdf")
         assert doc is None
