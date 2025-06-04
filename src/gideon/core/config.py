@@ -15,7 +15,7 @@ class GideonSettings(BaseSettings):
     DEFAULT_LLM_TEMPERATURE: float = 0.1
     
     # File processing
-    MAX_CONTENT_LENGTH: int = 5000
+    MAX_CONTENT_LENGTH: int = 500000
     SUPPORTED_EXTENSIONS: List[str] = [".pdf"]
     
     @property

@@ -63,7 +63,7 @@ class RenameWizard:
         self.llm_service = LLMServiceFactory.create(llm_service_type, service_config)
         self.console = Console()
         self.json_parser = CleanJsonOutputParser()
-        self.analysis_prompt = PromptTemplate.from_template(
+        self.prompt = PromptTemplate.from_template(
             """
             +++SchemaOutput(format=json, schema=strict)
             +++Precision(level=high)
@@ -108,7 +108,7 @@ class RenameWizard:
         try:
             self.console.print(f"[yellow]Analyzing document: {original_name}[/]")
             chain = await self.llm_service.create_chain(
-                prompt_template=self.analysis_prompt, output_parser=self.json_parser
+                prompt_template=self.prompt, output_parser=self.json_parser
             )
             result = await chain.ainvoke(
                 {
