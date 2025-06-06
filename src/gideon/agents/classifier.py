@@ -46,7 +46,7 @@ class ClassifierWizard:
     async def classify(self, title: str) -> dict:
         try:
             print_info(f"Classifying document: {title}")
-            chain = await self.llm.service.create_chain(prompt=self.prompt, output_parser=self.output_parser)
+            chain = await self.llm_service.create_chain(prompt=self.prompt, output_parser=self.output_parser)
             result = await chain.ainvoke({"title": title, "TOPIC_LIST": TOPIC_LIST})
             print_info(f"Classification result: {result}")
             return result

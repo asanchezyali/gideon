@@ -20,10 +20,10 @@ class AiDockerModelService(BaseLLMService):
 
     async def create_chain(
         self,
-        prompt_template: PromptTemplate,
+        prompt: PromptTemplate,
         output_parser: Optional[BaseOutputParser] = None,
     ) -> RunnableSequence:
-        chain = prompt_template | self.llm
+        chain = prompt | self.llm
         if output_parser:
             chain = chain | output_parser
         return chain

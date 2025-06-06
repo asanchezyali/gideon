@@ -66,7 +66,7 @@ class RenameService:
         if not doc_info:
             return file_name
 
-        if not doc_info.title:
+        if doc_info.title:
             topic_info = await self.document_classifier.classify(doc_info.title)
             print(f"Classified topic: {topic_info}")
             doc_info = DocumentInfo(

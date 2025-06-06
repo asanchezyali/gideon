@@ -54,7 +54,7 @@ class DocumentAnalyzer:
     async def analyze(self, content: str, file_name: str) -> Optional[DocumentInfo]:
         try:
             print_info(f"Analyzing document: {file_name}")
-            chain = await self.llm_service.create_chain(prompt_template=self.prompt, output_parser=self.json_parser)
+            chain = await self.llm_service.create_chain(prompt=self.prompt, output_parser=self.json_parser)
             result = await chain.ainvoke(
                 {
                     "content": content[: settings.MAX_CONTENT_LENGTH],
