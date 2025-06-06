@@ -29,6 +29,7 @@ def rename_file(
     ),
 ):
     """Rename files in a directory using AI analysis."""
+    print(llm_service_type, model, temperature)
     asyncio.run(rename_files_with_ai(directory, llm_service_type, model, temperature))
 
 
@@ -66,7 +67,7 @@ async def rename_files_with_ai(
         if not content:
             return
 
-        doc_info = await rename_wizard.rename_document(content, file_path.name)
+        doc_info = await rename_wizard.extract_document_info(content, file_path.name)
         if not doc_info:
             return
 

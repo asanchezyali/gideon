@@ -160,3 +160,6 @@ Alejandro Sánchez Yalí
 
 **Note:**  
 Gideon is under active development. Contributions and feedback are welcome!
+
+docker desktop enable model-runner --tcp 11434
+

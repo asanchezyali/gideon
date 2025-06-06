@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Optional, List, Dict, Any
 from rich.console import Console
 from langchain_core.prompts import PromptTemplate
@@ -10,13 +11,11 @@ from ..core.config import settings
 UNKNOWN_AUTHOR = "Unknown_Author"
 UNKNOWN_TITLE = "Unknown_Title"
 
-
+@dataclass
 class DocumentInfo:
-    def __init__(self, authors: List[str], year: str, title: str, topic: str):
-        self.authors = authors
-        self.year = year
-        self.title = title
-        self.topic = topic
+    authors: List[str]
+    year: str
+    title: str
 
 
 class RenameWizard:
@@ -60,12 +59,11 @@ class RenameWizard:
             10. Return ONLY the valid JSON object and nothing else
 
             Document content:
-            {metadata}
             {content}
             """
         )
 
-    async def rename_document(self, content: str, original_name: str) -> Optional[DocumentInfo]:
+    async def extract_document_info(self, content: str, original_name: str) -> Optional[DocumentInfo]:
         try:
             self.console.print(f"[yellow]Analyzing document: {original_name}[/]")
             chain = await self.llm_service.create_chain(prompt_template=self.prompt, output_parser=self.json_parser)

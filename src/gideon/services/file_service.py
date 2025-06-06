@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import List, Optional
-from langchain_community.document_loaders import PyPDFLoader
+from PyPDF2 import PdfReader
 from rich.tree import Tree
 import hashlib
 from ..core.config import settings
@@ -11,11 +11,10 @@ class FileService:
     @staticmethod
     async def extract_pdf_content(file_path: Path) -> str:
         try:
-            reader = PyPDFLoader(str(file_path))
-            content = reader.load()
-            metadata = content[0].metadata if content else {}
-            print(metadataj)
-            return "\n".join(content)
+            pfd_reader = PdfReader(str(file_path))
+            pages = pfd_reader.pages
+            return "\n".join([page.extract_text() for page in pages if page.extract_text()])
+            
         except Exception as e:
             print_error(f"Error reading PDF file {file_path.name}: {e}")
             return ""
@@ -69,41 +68,41 @@ class FileService:
     @staticmethod
     def organize_files(directory: Path, dry_run: bool = False, ignore_patterns: list = None) -> None:
         """Organize files into topic-based subdirectories and delete empty directories.
-        
+
         Args:
             directory: The root directory to organize
             dry_run: If True, only show what would be done without making changes
             ignore_patterns: List of directory patterns to ignore (e.g., ['.git', '.vscode'])
         """
         if ignore_patterns is None:
-            ignore_patterns = ['.git', '.svn', '__pycache__', '.vscode', '.idea', 'node_modules']
-            
+            ignore_patterns = [".git", ".svn", "__pycache__", ".vscode", ".idea", "node_modules"]
+
         # Get all files matching the extension pattern
         files = FileService.get_files_by_extension(directory)
         organized_count = 0
         skipped_count = 0
-        
+
         for file in files:
             # Skip files in ignored directories
             if any(pattern in str(file) for pattern in ignore_patterns):
                 continue
-                
+
             # Skip files with insufficient topic information
             if len(file.stem.split(".")) < 3:
                 print_error(f"Skipping file with insufficient topic information: {file.name}")
                 skipped_count += 1
                 continue
-                
+
             # Extract topic from filename
             topic = file.stem.split(".")[-2]
             target_dir = directory / topic
-            
+
             # Create target directory if it doesn't exist
             if not target_dir.exists():
                 if not dry_run:
                     target_dir.mkdir(parents=True, exist_ok=True)
                 print_success(f"Created directory: {target_dir}")
-                
+
             # Move file to target directory
             new_path = target_dir / file.name
             if not dry_run and new_path != file:
@@ -115,7 +114,7 @@ class FileService:
                     print_error(f"Error moving file {file.name}: {str(e)}")
             elif dry_run:
                 organized_count += 1
-                
+
         # Clean up empty directories
         if not dry_run:
             try:
@@ -125,7 +124,7 @@ class FileService:
                 print_error(f"Error cleaning up empty directories: {str(e)}")
         else:
             print_success("Dry run completed, no changes made")
-            
+
         # Print summary
         if organized_count == 0:
             print_error("No files were organized")
@@ -134,40 +133,40 @@ class FileService:
                 print_success(f"Dry run: {organized_count} files would be organized")
             else:
                 print_success(f"Organized {organized_count} files into their respective directories")
-                
+
         if skipped_count > 0:
             print_error(f"Skipped {skipped_count} files due to insufficient topic information")
 
     @staticmethod
     def _delete_empty_directories(directory: Path, ignore_patterns: list = None) -> None:
         """Delete empty directories recursively.
-        
+
         Args:
             directory: The directory to check for empty subdirectories
             ignore_patterns: List of directory name patterns to ignore (e.g., ['.git', '.vscode'])
         """
         if ignore_patterns is None:
-            ignore_patterns = ['.git', '.svn', '__pycache__', '.vscode']
-            
+            ignore_patterns = [".git", ".svn", "__pycache__", ".vscode"]
+
         # Skip processing for ignored directories
         if any(pattern in str(directory) for pattern in ignore_patterns):
             return
-            
+
         try:
             # Get all subdirectories
             subdirs = [item for item in directory.iterdir() if item.is_dir()]
-            
+
             # Process subdirectories first
             for item in subdirs:
                 # Skip ignored directories
                 if any(pattern in item.name for pattern in ignore_patterns):
                     continue
-                    
+
                 try:
                     FileService._delete_empty_directories(item, ignore_patterns)
                 except (PermissionError, FileNotFoundError) as e:
                     print_error(f"Error processing directory {item}: {str(e)}")
-            
+
             # Check if this directory is now empty and can be deleted
             try:
                 if directory.exists() and not any(directory.iterdir()):
@@ -175,6 +174,6 @@ class FileService:
                     print_success(f"Deleted empty directory: {directory}")
             except (PermissionError, FileNotFoundError) as e:
                 print_error(f"Error deleting directory {directory}: {str(e)}")
-                
+
         except (PermissionError, FileNotFoundError) as e:
             print_error(f"Error accessing directory {directory}: {str(e)}")

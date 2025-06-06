@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from .base import BaseLLMService
 from .ollama import OllamaService
-from .ai_docker_model import AiDockerModelService
+from .dockerai import AiDockerModelService
 
 
 class LLMServiceType(str, Enum):
