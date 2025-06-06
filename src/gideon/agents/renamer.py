@@ -1,43 +1,10 @@
-from dataclasses import dataclass
-from typing import Optional, List, Dict, Any, Protocol
-from rich.console import Console
+from typing import Optional, Dict, Any
 from langchain_core.prompts import PromptTemplate
-from datetime import datetime
-import re
+from ..utils.bcolors import print_info, print_error
 from ..llm.factory import LLMServiceFactory, LLMServiceType
 from ..utils.parsers import CleanJsonOutputParser
 from ..core.config import settings
-
-UNKNOWN_AUTHOR = "Unknown_Author"
-UNKNOWN_TITLE = "Unknown_Title"
-
-
-@dataclass
-class DocumentInfo:
-    authors: List[str]
-    year: str
-    title: str
-
-
-class Logger(Protocol):
-    """Protocol defining logging interface."""
-
-    def log(self, message: str) -> None:
-        """Log a message."""
-        ...
-
-
-class ConsoleLogger:
-    """Implementation of the Logger protocol using Rich Console."""
-
-    def __init__(self, console: Optional[Console] = None):
-        self.console = console or Console()
-
-    def log(self, message: str) -> None:
-        if "[red]" in message:
-            self.console.print(message)
-        else:
-            self.console.print(message)
+from ..models.document import DocumentInfo, UNKNOWN_TITLE
 
 
 class DocumentAnalyzer:
@@ -45,10 +12,8 @@ class DocumentAnalyzer:
         self,
         llm_service_type: LLMServiceType = settings.DEFAULT_LLM_SERVICE_TYPE,
         service_config: Optional[Dict[str, Any]] = None,
-        logger: Optional[Logger] = None,
     ):
         self.llm_service = LLMServiceFactory.create(llm_service_type, service_config)
-        self.logger = logger or ConsoleLogger()
         self.json_parser = CleanJsonOutputParser()
         self.prompt = PromptTemplate.from_template(
             """
@@ -88,7 +53,7 @@ class DocumentAnalyzer:
 
     async def analyze(self, content: str, file_name: str) -> Optional[DocumentInfo]:
         try:
-            self.logger.log(f"[yellow]Analyzing document: {file_name}[/]")
+            print_info(f"Analyzing document: {file_name}")
             chain = await self.llm_service.create_chain(prompt_template=self.prompt, output_parser=self.json_parser)
             result = await chain.ainvoke(
                 {
@@ -97,7 +62,7 @@ class DocumentAnalyzer:
             )
 
             if not result or not isinstance(result, dict):
-                self.logger.log("[red]Invalid response format from LLM[/]")
+                print_error(f"Invalid response format for {file_name}")
                 return None
 
             return DocumentInfo(
@@ -107,151 +72,5 @@ class DocumentAnalyzer:
             )
 
         except Exception as e:
-            self.logger.log(f"[red]Error analyzing document: {str(e)}[/]")
+            print_error(f"Error analyzing document {file_name}: {str(e)}")
             return None
-
-
-class FormatterInterface(Protocol):
-    """Protocol defining formatter interface."""
-
-    def format(self, doc_info: DocumentInfo) -> str:
-        """Format a part of document info into a string for filename."""
-        ...
-
-
-class AuthorFormatter:
-    def format(self, doc_info: DocumentInfo) -> str:
-        """Format authors for filename."""
-        authors = doc_info.authors
-        if not authors:
-            return UNKNOWN_AUTHOR
-
-        if len(authors) > 1:
-            first_author = re.sub(r"[^\w\s]", "", authors[0])
-            formatted_author = "_".join(word.capitalize() for word in first_author.split())
-            return f"{formatted_author}_And_Others"
-        else:
-            clean_author = re.sub(r"[^\w\s]", "", authors[0])
-            formatted_author = "_".join(word.capitalize() for word in clean_author.split())
-            return formatted_author
-
-    @staticmethod
-    def format_authors(authors: List[str]) -> str:
-        if not authors:
-            return UNKNOWN_AUTHOR
-
-        if len(authors) > 1:
-            first_author = re.sub(r"[^\w\s]", "", authors[0])
-            formatted_author = "_".join(word.capitalize() for word in first_author.split())
-            return f"{formatted_author}_And_Others"
-        else:
-            clean_author = re.sub(r"[^\w\s]", "", authors[0])
-            formatted_author = "_".join(word.capitalize() for word in clean_author.split())
-            return formatted_author
-
-
-class TitleFormatter:
-    def format(self, doc_info: DocumentInfo) -> str:
-        """Format title for filename."""
-        title = doc_info.title
-        if not title:
-            return UNKNOWN_TITLE
-        clean_title = re.sub(r"[^\w\s]", "", title)
-        words = clean_title.lower().split()
-        if words:
-            words[0] = words[0].capitalize()
-        formatted_title = "_".join(words)
-        return formatted_title
-
-    @staticmethod
-    def format_title(title: str) -> str:
-        if not title:
-            return UNKNOWN_TITLE
-        clean_title = re.sub(r"[^\w\s]", "", title)
-        words = clean_title.lower().split()
-        if words:
-            words[0] = words[0].capitalize()
-        formatted_title = "_".join(words)
-        return formatted_title
-
-
-class YearFormatter:
-    def format(self, doc_info: DocumentInfo) -> str:
-        """Format year for filename."""
-        return doc_info.year[:4] if doc_info.year else ""
-
-    @staticmethod
-    def format_year(year: str) -> str:
-        return year[:4] if year else ""
-
-
-class TimestampFormatter:
-    def format(self, doc_info: DocumentInfo) -> str:
-        """Format timestamp for filename."""
-        return datetime.now().strftime("%Y%m%d_%H%M%S")
-
-
-class FileNameGenerator:
-    def __init__(self, formatters: Optional[List[FormatterInterface]] = None):
-        self.formatters = formatters or [AuthorFormatter(), YearFormatter(), TitleFormatter(), TimestampFormatter()]
-
-    def generate_filename(self, doc_info: DocumentInfo) -> str:
-        filename_parts = []
-
-        for formatter in self.formatters:
-            formatted_part = formatter.format(doc_info)
-            if formatted_part:
-                filename_parts.append(formatted_part)
-
-        return ".".join(filename_parts) + ".pdf"
-
-    @classmethod
-    def from_doc_info(cls, doc_info: DocumentInfo):
-        generator = cls()
-        return generator.generate_filename(doc_info)
-
-
-class RenameService:
-    def __init__(
-        self,
-        document_analyzer: Optional[DocumentAnalyzer] = None,
-        filename_generator: Optional[FileNameGenerator] = None,
-        llm_service_type: LLMServiceType = settings.DEFAULT_LLM_SERVICE_TYPE,
-        service_config: Optional[Dict[str, Any]] = None,
-        logger: Optional[Logger] = None,
-    ):
-        """
-        Initialize the rename service with dependencies.
-
-        Args:
-            document_analyzer: Optional pre-configured document analyzer
-            filename_generator: Optional pre-configured filename generator
-            llm_service_type: Type of LLM to use if creating a new analyzer
-            service_config: Configuration for the LLM service
-            logger: Optional logger for operations
-        """
-        self.logger = logger or ConsoleLogger()
-
-        if document_analyzer is None:
-            document_analyzer = DocumentAnalyzer(llm_service_type, service_config, self.logger)
-        self.document_analyzer = document_analyzer
-
-        self.filename_generator = filename_generator or FileNameGenerator()
-
-    async def rename_file(self, content: str, file_name: str) -> str:
-        """
-        Rename a file based on its content.
-
-        Args:
-            content: The content of the file
-            file_name: Current file name
-
-        Returns:
-            New file name or the original if analysis fails
-        """
-        doc_info = await self.document_analyzer.analyze(content, file_name)
-        if not doc_info:
-            return file_name
-
-        new_name = self.filename_generator.generate_filename(doc_info)
-        return new_name

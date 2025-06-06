@@ -3,7 +3,7 @@ from pathlib import Path
 import typer
 from rich.console import Console
 
-from ...agents.renamer import RenameService
+from ...services.rename_service import RenameService
 from ...services.file_service import FileService
 from ...core.config import settings
 from ...llm.factory import LLMServiceType
