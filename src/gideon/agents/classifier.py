@@ -15,7 +15,7 @@ TOPIC_LIST = [
     "Probability",
     "Statistics",
     "Combinatorics",
-    "Computer Science",d
+    "Computer Science",
     "Physics",
     "Chemistry",
     "Biology",

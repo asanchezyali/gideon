@@ -3,7 +3,7 @@ from pathlib import Path
 import typer
 from rich.console import Console
 
-from ...agents.renamer import RenameWizard
+from ...agents.renamer import RenameService
 from ...services.file_service import FileService
 from ...core.config import settings
 from ...llm.factory import LLMServiceType
@@ -59,7 +59,7 @@ async def rename_files_with_ai(
         "model": model,
         "temperature": temperature,
     }
-    rename_wizard = RenameWizard(llm_service_type=llm_service_type, service_config=config)
+    rename_wizard = RenameService(llm_service_type=llm_service_type, service_config=config)
 
     # Process files
     async def process_file(file_path: Path) -> None:
@@ -67,11 +67,10 @@ async def rename_files_with_ai(
         if not content:
             return
 
-        doc_info = await rename_wizard.extract_document_info(content, file_path.name)
-        if not doc_info:
+        new_name = await rename_wizard.rename_file(content, file_path.name)
+        if not new_name:
             return
 
-        new_name = rename_wizard.generate_filename(doc_info)
         file_service.rename_file(file_path, new_name)
 
     # Process all files concurrently

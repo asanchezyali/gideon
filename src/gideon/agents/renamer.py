@@ -11,6 +11,7 @@ from ..core.config import settings
 UNKNOWN_AUTHOR = "Unknown_Author"
 UNKNOWN_TITLE = "Unknown_Title"
 
+
 @dataclass
 class DocumentInfo:
     authors: List[str]
@@ -18,7 +19,7 @@ class DocumentInfo:
     title: str
 
 
-class RenameWizard:
+class DocumentAnalyzer:
     def __init__(
         self,
         llm_service_type: LLMServiceType = settings.DEFAULT_LLM_SERVICE_TYPE,
@@ -63,9 +64,9 @@ class RenameWizard:
             """
         )
 
-    async def extract_document_info(self, content: str, original_name: str) -> Optional[DocumentInfo]:
+    async def analyze(self, content: str, file_name: str) -> Optional[DocumentInfo]:
         try:
-            self.console.print(f"[yellow]Analyzing document: {original_name}[/]")
+            self.console.print(f"[yellow]Analyzing document: {file_name}[/]")
             chain = await self.llm_service.create_chain(prompt_template=self.prompt, output_parser=self.json_parser)
             result = await chain.ainvoke(
                 {
@@ -87,17 +88,57 @@ class RenameWizard:
             self.console.print(f"[red]Error analyzing document: {str(e)}[/]")
             return None
 
-    def generate_filename(self, doc_info: DocumentInfo) -> str:
+
+class AuthorFormatter:
+    @staticmethod
+    def format_authors(authors: List[str]) -> str:
+        if not authors:
+            return UNKNOWN_AUTHOR
+
+        if len(authors) > 1:
+            first_author = re.sub(r"[^\w\s]", "", authors[0])
+            formatted_author = "_".join(word.capitalize() for word in first_author.split())
+            return f"{formatted_author}_And_Others"
+        else:
+            clean_author = re.sub(r"[^\w\s]", "", authors[0])
+            formatted_author = "_".join(word.capitalize() for word in clean_author.split())
+            return formatted_author
+
+
+class TitleFormatter:
+    @staticmethod
+    def format_title(title: str) -> str:
+        if not title:
+            return UNKNOWN_TITLE
+        clean_title = re.sub(r"[^\w\s]", "", title)
+        words = clean_title.lower().split()
+        if words:
+            words[0] = words[0].capitalize()
+        formatted_title = "_".join(words)
+        return formatted_title
+
+
+class YearFormatter:
+    @staticmethod
+    def format_year(year: str) -> str:
+        return year[:4] if year else ""
+
+
+class FileNameGenerator:
+    def __init__(self, doc_info: DocumentInfo):
+        self.doc_info = doc_info
+
+    def generate_filename(self) -> str:
         filename_parts = []
 
-        authors_str = self._format_authors(doc_info.authors)
+        authors_str = AuthorFormatter.format_authors(self.doc_info.authors)
         filename_parts.append(authors_str)
 
-        year_str = self._format_year(doc_info.year)
+        year_str = YearFormatter.format_year(self.doc_info.year)
         if year_str:
             filename_parts.append(year_str)
 
-        title_str = self._format_title(doc_info.title)
+        title_str = TitleFormatter.format_title(self.doc_info.title)
         filename_parts.append(title_str)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -105,34 +146,20 @@ class RenameWizard:
 
         return ".".join(filename_parts) + ".pdf"
 
-    def _format_authors(self, authors: List[str]) -> str:
-        if not authors:
-            return UNKNOWN_AUTHOR
 
-        if len(authors) > 1:
-            # Remove special characters from first author name before formatting
-            first_author = re.sub(r"[^\w\s]", "", authors[0])
-            # Capitalize each word and join with underscores
-            formatted_author = "_".join(word.capitalize() for word in first_author.split())
-            return f"{formatted_author}_And_Others"
-        else:
-            # Remove special characters from single author name
-            clean_author = re.sub(r"[^\w\s]", "", authors[0])
-            # Capitalize each word and join with underscores
-            formatted_author = "_".join(word.capitalize() for word in clean_author.split())
-            return formatted_author
+class RenameService:
+    def __init__(
+        self,
+        llm_service_type: LLMServiceType = settings.DEFAULT_LLM_SERVICE_TYPE,
+        service_config: Optional[Dict[str, Any]] = None,
+    ):
+        self.document_analyzer = DocumentAnalyzer(llm_service_type, service_config)
 
-    def _format_year(self, year: str) -> str:
-        return year[:4] if year else ""
+    async def rename_file(self, content: str, file_name: str) -> str:
+        doc_info = await self.document_analyzer.analyze(content, file_name)
+        if not doc_info:
+            return file_name
 
-    def _format_title(self, title: str) -> str:
-        if not title:
-            return UNKNOWN_TITLE
-        # Remove special characters except underscores
-        clean_title = re.sub(r"[^\w\s]", "", title)
-        # Convert to lowercase except first word and replace spaces with underscores
-        words = clean_title.lower().split()
-        if words:
-            words[0] = words[0].capitalize()
-        formatted_title = "_".join(words)
-        return formatted_title
+        generator = FileNameGenerator(doc_info)
+        new_name = generator.generate_filename()
+        return new_name
