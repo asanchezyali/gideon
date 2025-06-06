@@ -4,7 +4,6 @@ from ..llm.factory import LLMServiceFactory, LLMServiceType
 from langchain_core.prompts import PromptTemplate
 from ..utils.parsers import CleanJsonOutputParser
 from ..core.config import settings
-from ..models.document import TOPIC_LIST
 
 
 class ClassifierWizard:
@@ -21,35 +20,48 @@ class ClassifierWizard:
             +++Precision(level=high)
             +++RuleFollowing(priority=absolute)
             +++ExtractMetadata(fields=topic)
-            +++DirectResponse(field=topic)
-            You are to classify the following document title into one of the predefined topics.
+            +++DirectResponse(style=json_only)
+            
+            You are an expert classifier. Your task is to assign a topic to the following document title.
 
             Document title: {title}
-            Available topics: {TOPIC_LIST}
 
             Respond with a JSON object in this format:
             {{
-              "topic": "Topic_Name",
-              "confidence": 0.0
+              "topic": "Topic_Name"
             }}
 
-            Rules:
-            1. The topic must exactly match one from the provided list.
-            2. If no topic fits, use "Unknown_Topic".
-            3. "confidence" should be a float between 0.0 and 1.0, reflecting certainty.
-            4. Format the topic as "Topic_Name" (underscores for spaces).
-            5. Output only the JSON object, no extra text.
-            6. Do not include any reasoning, tags, or troubleshooting information.
+            Classification rules:
+            1. Choose the most appropriate topic for the title, using academic knowledge categories.
+            2. Format the topic as "Topic_Name" (replace spaces with underscores).
+            3. Use proper capitalization for the topic name (e.g., "Experimental_Design" not "experimental_design").
+            4. Return ONLY the JSON object with no extra text, explanation, or comments.
+            5. DO NOT add any explanations, apologies or additional context.
+            6. DO NOT include any reasoning, tags, or troubleshooting information.
+            7. Your entire response must be valid JSON and nothing else.
+            8. Make sure to include the closing brace '}}' in your response.
             """
         )
 
-    async def classify(self, title: str) -> dict:
-        try:
-            print_info(f"Classifying document: {title}")
-            chain = await self.llm_service.create_chain(prompt=self.prompt, output_parser=self.output_parser)
-            result = await chain.ainvoke({"title": title, "TOPIC_LIST": TOPIC_LIST})
-            print_info(f"Classification result: {result}")
-            return result
-        except Exception as e:
-            print_error(f"Error during classification: {e}")
-            return {"topic": "Unknown", "confidence": 0.0}
+    async def classify(self, title: str, max_retries: int = 1) -> dict:
+        retries = 0
+        while retries <= max_retries:
+            try:
+                print_info(f"Classifying document: {title}{' (retry ' + str(retries) + ')' if retries > 0 else ''}")
+                chain = await self.llm_service.create_chain(prompt=self.prompt, output_parser=self.output_parser)
+                result = await chain.ainvoke({"title": title})
+
+                if not result or not isinstance(result, dict) or "topic" not in result:
+                    if retries < max_retries:
+                        print_error(f"Invalid result format on attempt {retries + 1}, retrying: {result}")
+                        retries += 1
+                        continue
+                    return {"topic": "Unknown_Topic"}
+                return result
+
+            except Exception as e:
+                print_error(f"Error during classification{' attempt ' + str(retries + 1) if retries > 0 else ''}: {e}")
+                if retries < max_retries:
+                    retries += 1
+                    continue
+                return {"topic": "Unknown_Topic"}

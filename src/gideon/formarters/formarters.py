@@ -67,11 +67,9 @@ class TopicFormatter:
     def format_topic(topic: str) -> str:
         if not topic:
             return UNKNOWN_TOPIC
-        formatted_topic = "_".join(topic.split())
-        for valid_topic in TOPIC_LIST:
-            if formatted_topic.lower() == valid_topic.lower():
-                return valid_topic
-        return UNKNOWN_TOPIC
+        words = re.split(r'[_\s]+', topic)
+        formatted = "_".join(word.capitalize() for word in words if word)
+        return formatted
 
 
 class FileNameGenerator:
