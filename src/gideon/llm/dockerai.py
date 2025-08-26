@@ -13,17 +13,17 @@ class AiDockerModelService(BaseLLMService):
 
         self.llm = ChatOpenAI(
             model=self.config.get("model", settings.DEFAULT_LLM_CONFIG["model"]),
-            base_url="http://127.0.0.1:11434/engines/v1",
+            base_url="http://127.0.0.1:12434/engines/v1",
             temperature=self.config.get("temperature", settings.DEFAULT_LLM_CONFIG["temperature"]),
             api_key="ignored"
         )
 
     async def create_chain(
         self,
-        prompt_template: PromptTemplate,
+        prompt: PromptTemplate,
         output_parser: Optional[BaseOutputParser] = None,
     ) -> RunnableSequence:
-        chain = prompt_template | self.llm
+        chain = prompt | self.llm
         if output_parser:
             chain = chain | output_parser
         return chain

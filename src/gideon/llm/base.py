@@ -11,7 +11,7 @@ class BaseLLMService(ABC):
     @abstractmethod
     async def create_chain(
         self,
-        prompt_template: PromptTemplate,
+        prompt: PromptTemplate,
         output_parser: Optional[BaseOutputParser] = None,
     ):
         pass

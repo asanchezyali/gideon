@@ -1,3 +1,3 @@
-from .renamer import RenameWizard, DocumentInfo
+from .renamer import DocumentAnalyzer, DocumentInfo
 
-__all__ = ["RenameWizard", "DocumentInfo"] 
+__all__ = ["DocumentAnalyzer", "DocumentInfo"] 

@@ -1,4 +1,5 @@
 from rich.console import Console
+from .logging import log_message
 
 console = Console()
 
@@ -14,20 +15,20 @@ class BColors:
 
 
 def print_success(message: str) -> None:
-    console.print(f"{BColors.GREEN}{message}{BColors.GREEN}")
+    log_message(message, style="green")
 
 
 def print_error(message: str) -> None:
-    console.print(f"{BColors.RED}{message}{BColors.RED}")
+    log_message(message, style="red")
 
 
 def print_warning(message: str) -> None:
-    console.print(f"{BColors.YELLOW}{message}{BColors.YELLOW}")
+    log_message(message, style="yellow")
 
 
 def print_info(message: str) -> None:
-    console.print(f"{BColors.BLUE}{message}{BColors.BLUE}")
+    log_message(message, style="blue")
 
 
 def print_debug(message: str) -> None:
-    console.print(f"{BColors.WHITE}{message}{BColors.WHITE}")
+    log_message(message, style="white")

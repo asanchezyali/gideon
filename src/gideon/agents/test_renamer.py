@@ -1,12 +1,12 @@
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
-from src.gideon.agents.renamer import DocumentInfo, RenameWizard, UNKNOWN_AUTHOR, UNKNOWN_TITLE, UNKNOWN_TOPIC
+from src.gideon.agents.renamer import DocumentInfo, DocumentAnalyzer, UNKNOWN_AUTHOR, UNKNOWN_TITLE, UNKNOWN_TOPIC
 
 
 @pytest.fixture
 def wizard():
     with patch("src.gideon.agents.renamer.LLMServiceFactory.create", return_value=MagicMock()):
-        yield RenameWizard()
+        yield DocumentAnalyzer()
 
 
 def test_document_info_init():
@@ -103,8 +103,8 @@ async def test_analyze_document_valid():
         "src.gideon.agents.renamer.LLMServiceFactory.create",
         return_value=MagicMock(create_chain=AsyncMock(return_value=mock_chain)),
     ):
-        wizard = RenameWizard()
-        doc = await wizard.analyze_document("content", "file.pdf")
+        wizard = DocumentAnalyzer()
+        doc = await wizard.analyze("content", "file.pdf")
         assert isinstance(doc, DocumentInfo)
         assert doc.authors == ["Alice Smith"]
         assert doc.year == "2022"
@@ -120,8 +120,8 @@ async def test_analyze_document_missing_fields():
         "src.gideon.agents.renamer.LLMServiceFactory.create",
         return_value=MagicMock(create_chain=AsyncMock(return_value=mock_chain)),
     ):
-        wizard = RenameWizard()
-        doc = await wizard.analyze_document("content", "file.pdf")
+        wizard = DocumentAnalyzer()
+        doc = await wizard.analyze("content", "file.pdf")
         assert isinstance(doc, DocumentInfo)
         assert doc.authors == []
         assert doc.year == ""
@@ -137,8 +137,8 @@ async def test_analyze_document_invalid_json():
         "src.gideon.agents.renamer.LLMServiceFactory.create",
         return_value=MagicMock(create_chain=AsyncMock(return_value=mock_chain)),
     ):
-        wizard = RenameWizard()
-        doc = await wizard.analyze_document("content", "file.pdf")
+        wizard = DocumentAnalyzer()
+        doc = await wizard.analyze("content", "file.pdf")
         assert doc is None
 
 
@@ -150,6 +150,6 @@ async def test_analyze_document_exception():
         "src.gideon.agents.renamer.LLMServiceFactory.create",
         return_value=MagicMock(create_chain=AsyncMock(return_value=mock_chain)),
     ):
-        wizard = RenameWizard()
-        doc = await wizard.analyze_document("content", "file.pdf")
+        wizard = DocumentAnalyzer()
+        doc = await wizard.analyze("content", "file.pdf")
         assert doc is None
