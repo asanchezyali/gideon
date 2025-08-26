@@ -23,6 +23,10 @@ class CleanJsonOutputParser(JsonOutputParser):
             ValueError: If no valid JSON object is found or if the JSON is invalid
         """
         text = result[0].text
+        from .logging import log_message
+        log_message(f"Raw LLM response: {text}", style="dim blue")
+        if not text:
+            raise ValueError("Empty response from LLM")
         try:
             # Remove thinking process
             cleaned_text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)

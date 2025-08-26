@@ -161,5 +161,7 @@ Alejandro Sánchez Yalí
 **Note:**  
 Gideon is under active development. Contributions and feedback are welcome!
 
-docker desktop enable model-runner --tcp 11434
+https://www.docker.com/blog/run-llms-locally/
+docker desktop enable model-runner
+docker desktop enable model-runner --tcp 12434
 

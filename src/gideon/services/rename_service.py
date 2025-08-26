@@ -11,7 +11,7 @@ from ..formarters.formarters import (
 from ..core.config import settings
 from ..llm.factory import LLMServiceType
 from ..agents.renamer import DocumentAnalyzer
-from ..agents.classifier import ClassifierWizard
+from ..validators.filename_validator import FilenameValidator
 
 
 class FileNameGenerator:
@@ -20,8 +20,8 @@ class FileNameGenerator:
             AuthorFormatter(),
             YearFormatter(),
             TitleFormatter(),
-            TimestampFormatter(),
             TopicFormatter(),
+            TimestampFormatter(),
         ]
 
     def generate_filename(self, doc_info: DocumentInfo) -> str:
@@ -44,7 +44,6 @@ class RenameService:
     def __init__(
         self,
         document_analyzer: Optional[DocumentAnalyzer] = None,
-        document_classifier: Optional[ClassifierWizard] = None,
         filename_generator: Optional[FileNameGenerator] = None,
         llm_service_type: LLMServiceType = settings.DEFAULT_LLM_SERVICE_TYPE,
         service_config: Optional[Dict[str, Any]] = None,
@@ -53,27 +52,25 @@ class RenameService:
             document_analyzer = DocumentAnalyzer(llm_service_type, service_config)
         self.document_analyzer = document_analyzer
 
-        if document_classifier is None:
-            document_classifier = ClassifierWizard(llm_service_type, service_config)
-        self.document_classifier = document_classifier
-
         if filename_generator is None:
             filename_generator = FileNameGenerator()
         self.filename_generator = filename_generator
 
     async def rename_file(self, content: str, file_name: str) -> str:
+        # Check if file is already correctly named
+        validator = FilenameValidator()
+        if validator.is_valid_format(file_name):
+            from ..utils.logging import log_info
+            log_info(f"File {file_name} is already correctly formatted, skipping rename")
+            return file_name
+        
+        # DocumentAnalyzer now handles both analysis and classification in one call
         doc_info = await self.document_analyzer.analyze(content, file_name)
         if not doc_info:
             return file_name
 
-        if doc_info.title:
-            topic_info = await self.document_classifier.classify(doc_info.title)
-            print(f"Classified topic: {topic_info}")
-            doc_info = DocumentInfo(
-                authors=doc_info.authors,
-                year=doc_info.year,
-                title=doc_info.title or "Unknown_Title",
-                topic=topic_info.get("topic", "Unknown_Topic"),
-            )
+        from ..utils.logging import log_info
+        log_info(f"Extracted info - Title: {doc_info.title}, Topic: {doc_info.topic}")
+        
         new_name = self.filename_generator.generate_filename(doc_info)
         return new_name

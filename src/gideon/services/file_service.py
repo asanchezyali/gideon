@@ -4,7 +4,7 @@ from PyPDF2 import PdfReader
 from rich.tree import Tree
 import hashlib
 from ..core.config import settings
-from ..utils.bcolors import print_success, print_error
+from ..utils.logging import log_success, log_error
 
 
 class FileService:
@@ -12,11 +12,11 @@ class FileService:
     async def extract_pdf_content(file_path: Path) -> str:
         try:
             pfd_reader = PdfReader(str(file_path))
-            pages = pfd_reader.pages
+            pages = pfd_reader.pages[:settings.MAX_PDF_PAGES]
             return "\n".join([page.extract_text() for page in pages if page.extract_text()])
             
         except Exception as e:
-            print_error(f"Error reading PDF file {file_path.name}: {e}")
+            log_error(f"Error reading PDF file {file_path.name}: {e}")
             return ""
 
     @staticmethod
@@ -29,11 +29,11 @@ class FileService:
             new_path = file_path.parent / new_name
             if new_path != file_path:
                 file_path.rename(new_path)
-                print_success(f"Renamed: {file_path.name} -> {new_name}")
+                log_success(f"Renamed: {file_path.name} -> {new_name}")
                 return new_path
             return file_path
         except Exception as e:
-            print_error(f"Error renaming {file_path}: {str(e)}")
+            log_error(f"Error renaming {file_path}: {str(e)}")
             return None
 
     @staticmethod
@@ -59,11 +59,11 @@ class FileService:
             file_hash = hashlib.sha256(file.read_bytes()).hexdigest()
             if file_hash in visited_files:
                 file.unlink()
-                print_success(f"Removed: {file.name}")
+                log_success(f"Removed: {file.name}")
                 removed_files += 1
             else:
                 visited_files.add(file_hash)
-        print_success(f"Removed {removed_files} duplicate files")
+        log_success(f"Removed {removed_files} duplicate files")
 
     @staticmethod
     def organize_files(directory: Path, dry_run: bool = False, ignore_patterns: list = None) -> None:
@@ -89,7 +89,7 @@ class FileService:
 
             # Skip files with insufficient topic information
             if len(file.stem.split(".")) < 3:
-                print_error(f"Skipping file with insufficient topic information: {file.name}")
+                log_error(f"Skipping file with insufficient topic information: {file.name}")
                 skipped_count += 1
                 continue
 
@@ -101,17 +101,17 @@ class FileService:
             if not target_dir.exists():
                 if not dry_run:
                     target_dir.mkdir(parents=True, exist_ok=True)
-                print_success(f"Created directory: {target_dir}")
+                log_success(f"Created directory: {target_dir}")
 
             # Move file to target directory
             new_path = target_dir / file.name
             if not dry_run and new_path != file:
                 try:
                     file.rename(new_path)
-                    print_success(f"Moved: {file.name} -> {target_dir.name}/{file.name}")
+                    log_success(f"Moved: {file.name} -> {target_dir.name}/{file.name}")
                     organized_count += 1
                 except Exception as e:
-                    print_error(f"Error moving file {file.name}: {str(e)}")
+                    log_error(f"Error moving file {file.name}: {str(e)}")
             elif dry_run:
                 organized_count += 1
 
@@ -119,23 +119,23 @@ class FileService:
         if not dry_run:
             try:
                 FileService._delete_empty_directories(directory, ignore_patterns)
-                print_success(f"Deleted empty directories in {directory}")
+                log_success(f"Deleted empty directories in {directory}")
             except Exception as e:
-                print_error(f"Error cleaning up empty directories: {str(e)}")
+                log_error(f"Error cleaning up empty directories: {str(e)}")
         else:
-            print_success("Dry run completed, no changes made")
+            log_success("Dry run completed, no changes made")
 
         # Print summary
         if organized_count == 0:
-            print_error("No files were organized")
+            log_error("No files were organized")
         else:
             if dry_run:
-                print_success(f"Dry run: {organized_count} files would be organized")
+                log_success(f"Dry run: {organized_count} files would be organized")
             else:
-                print_success(f"Organized {organized_count} files into their respective directories")
+                log_success(f"Organized {organized_count} files into their respective directories")
 
         if skipped_count > 0:
-            print_error(f"Skipped {skipped_count} files due to insufficient topic information")
+            log_error(f"Skipped {skipped_count} files due to insufficient topic information")
 
     @staticmethod
     def _delete_empty_directories(directory: Path, ignore_patterns: list = None) -> None:
@@ -165,15 +165,15 @@ class FileService:
                 try:
                     FileService._delete_empty_directories(item, ignore_patterns)
                 except (PermissionError, FileNotFoundError) as e:
-                    print_error(f"Error processing directory {item}: {str(e)}")
+                    log_error(f"Error processing directory {item}: {str(e)}")
 
             # Check if this directory is now empty and can be deleted
             try:
                 if directory.exists() and not any(directory.iterdir()):
                     directory.rmdir()
-                    print_success(f"Deleted empty directory: {directory}")
+                    log_success(f"Deleted empty directory: {directory}")
             except (PermissionError, FileNotFoundError) as e:
-                print_error(f"Error deleting directory {directory}: {str(e)}")
+                log_error(f"Error deleting directory {directory}: {str(e)}")
 
         except (PermissionError, FileNotFoundError) as e:
-            print_error(f"Error accessing directory {directory}: {str(e)}")
+            log_error(f"Error accessing directory {directory}: {str(e)}")
