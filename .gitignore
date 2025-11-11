@@ -56,3 +56,10 @@ test-output/
 .coverage
 coverage.xml
 /Mathematics/
+
+# Gideon specific
+.gideon/
+chroma_db/
+vectorstore/
+test_documents/
+*.test.pdf
