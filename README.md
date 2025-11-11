@@ -44,15 +44,20 @@ Choose the best AI model for your needs:
 
 ### 🎯 **Key Capabilities**
 
-| Feature | Description |
-|---------|-------------|
-| 🔎 **Semantic Search** | Find relevant papers using natural language queries |
-| 💬 **RAG Q&A** | Ask questions, get answers from your research collection |
-| 📊 **Smart Organization** | Auto-categorize and rename based on content |
-| 🔄 **Duplicate Detection** | Identify identical or similar documents |
-| 🏷️ **Topic Classification** | 30+ predefined academic topics |
-| 🌐 **Multi-Format Support** | PDF, Word, PowerPoint, EPUB (*coming soon*) |
-| 💾 **Local-First** | Privacy-focused with local LLM support |
+| Feature | Description | Status |
+|---------|-------------|--------|
+| 🔎 **Semantic Search** | Find relevant papers using natural language queries | ✅ **Ready** |
+| 💬 **RAG Q&A** | Ask questions, get answers from your research collection | ✅ **Ready** |
+| 📊 **Smart Organization** | Auto-categorize and rename based on content | ✅ **Ready** |
+| 🔄 **Duplicate Detection** | Identify identical or similar documents | ✅ **Ready** |
+| 🏷️ **Topic Classification** | 30+ predefined academic topics | ✅ **Ready** |
+| 🌐 **Multi-Format Support** | PDF, Word, PowerPoint, EPUB, Markdown, Images (OCR) | ✅ **Ready** |
+| 📝 **Document Summarization** | Generate briefs, structured summaries, Cornell notes | ✅ **Ready** |
+| 📚 **Reference Extraction** | Extract bibliographies, export to BibTeX/APA | ✅ **Ready** |
+| 📖 **Literature Reviews** | Auto-generate literature reviews on topics | ✅ **Ready** |
+| 🕸️ **Knowledge Graphs** | Build citation and topic networks | ✅ **Ready** |
+| 📈 **Analytics Dashboard** | Visualize collection insights | ✅ **Ready** |
+| 💾 **Local-First** | Privacy-focused with local LLM support | ✅ **Ready** |
 
 ---
 
@@ -269,13 +274,50 @@ gideon search clear [--yes]
 
 ```bash
 # Rename files with AI
-gideon rename auto <directory> [--llm-type TYPE] [--model MODEL] [--temperature FLOAT]
+gideon rename auto <directory> [--llm-type TYPE] [--model MODEL]
 
 # Remove duplicates
-gideon remove-duplicates <directory>
+gideon deduplicate scan <directory> [--threshold FLOAT]
 
 # Organize files
 gideon organize <directory> [--dry-run] [--ignore PATTERNS]
+```
+
+#### Summarization
+
+```bash
+# Summarize a document
+gideon summarize file <document> [--type brief|structured|detailed|cornell|tweet]
+
+# Batch summarization
+gideon summarize batch <directory> [--type TYPE] [--output FILE]
+
+# List summary types
+gideon summarize types
+```
+
+#### References
+
+```bash
+# Extract references from document
+gideon references extract <document> [--llm/--no-llm] [--output FILE] [--format bibtex|apa|json]
+```
+
+#### Literature Reviews
+
+```bash
+# Generate literature review
+gideon review generate "<topic>" [--max-papers N] [--output FILE]
+```
+
+#### Analytics
+
+```bash
+# Create analytics dashboard
+gideon analytics dashboard [--output dashboard.html]
+
+# Build knowledge graph
+gideon analytics knowledge-graph [--output graph.gexf]
 ```
 
 ---
@@ -289,9 +331,17 @@ gideon organize <directory> [--dry-run] [--ignore PATTERNS]
 - [x] Document renaming and organization
 - [x] Topic classification
 
-### 🚧 **Phase 2: Enhancement** (In Progress)
-- [ ] Multi-format support (Word, PowerPoint, EPUB)
-- [ ] Smart duplicate detection (exact, fuzzy, semantic)
+### ✅ **Phase 2: Enhancement** (Completed)
+- [x] Multi-format support (Word, PowerPoint, EPUB, Markdown, Images with OCR)
+- [x] Smart duplicate detection (exact, version patterns)
+- [x] Document summarization (brief, structured, detailed, Cornell notes)
+- [x] Reference extraction (BibTeX, APA, JSON export)
+
+### ✅ **Phase 3: Advanced Features** (Completed)
+- [x] Literature review generator
+- [x] Knowledge graph builder
+- [x] Analytics dashboard
+- [x] Citation network analysis
 - [ ] Improved metadata extraction
 - [ ] Batch processing optimization
 - [ ] Web interface

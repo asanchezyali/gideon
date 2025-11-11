@@ -5,13 +5,35 @@ from typing import List, Type
 
 from .base import BaseExtractor
 from .pdf_extractor import PDFExtractor
+from .docx_extractor import DocxExtractor
+from .pptx_extractor import PptxExtractor
+from .epub_extractor import EpubExtractor
+from .text_extractor import TextExtractor, MarkdownExtractor
+from .image_extractor import ImageOCRExtractor
 
 
 class ExtractorFactory:
     """Factory for creating appropriate extractors based on file type."""
 
     EXTRACTOR_MAP = {
+        # PDF
         ".pdf": PDFExtractor,
+        # Microsoft Office
+        ".docx": DocxExtractor,
+        ".pptx": PptxExtractor,
+        # Ebooks
+        ".epub": EpubExtractor,
+        # Text formats
+        ".txt": TextExtractor,
+        ".md": MarkdownExtractor,
+        ".markdown": MarkdownExtractor,
+        # Images (OCR)
+        ".jpg": ImageOCRExtractor,
+        ".jpeg": ImageOCRExtractor,
+        ".png": ImageOCRExtractor,
+        ".tiff": ImageOCRExtractor,
+        ".tif": ImageOCRExtractor,
+        ".bmp": ImageOCRExtractor,
     }
 
     @classmethod
