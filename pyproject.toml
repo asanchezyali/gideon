@@ -10,18 +10,32 @@ authors = [
     {name = "Alejandro Sánchez Yalí", email = "asanchezyali@gmail.com"}
 ]
 dependencies = [
+    # CLI & UI
     "typer",
     "rich",
+
+    # LLM & AI
     "langchain",
     "langchain-community",
     "langchain-core",
-    "pydantic",
-    "pydantic-settings",
-    "pytest-asyncio>=0.26.0",
     "langchain-ollama>=0.3.3",
     "langchain-openai>=0.3.17",
+    "langchain-anthropic>=0.1.0",
+
+    # Configuration & Validation
+    "pydantic",
+    "pydantic-settings",
+
+    # Document Processing
     "pypdf>=5.6.0",
     "pypdf2>=3.0.1",
+
+    # Vector Search & Embeddings (for semantic search)
+    "chromadb>=0.4.0",
+    "sentence-transformers>=2.2.0",
+
+    # Testing
+    "pytest-asyncio>=0.26.0",
 ]
 requires-python = ">=3.11"
 readme = "README.md"

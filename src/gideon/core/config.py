@@ -19,7 +19,11 @@ class GideonSettings(BaseSettings):
     DEFAULT_LLM_SERVICE_TYPE: str = Field(default="ollama")
     DEFAULT_LLM_MODEL: str = Field(default="deepseek-r1:latest")
     DEFAULT_LLM_TEMPERATURE: float = Field(default=0.1)
-    
+
+    # API Keys for cloud LLM providers
+    OPENAI_API_KEY: Optional[str] = Field(default=None)
+    ANTHROPIC_API_KEY: Optional[str] = Field(default=None)
+
     # File processing
     MAX_CONTENT_LENGTH: int = Field(default=500000)
     MAX_PDF_PAGES: int = Field(default=5)
