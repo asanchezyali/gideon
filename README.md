@@ -1,167 +1,387 @@
-# Gideon
+<div align="center">
 
-**Gideon** is an AI-powered CLI tool for intelligent file organization, focused on renaming academic documents (PDFs) using LLMs (Large Language Models) such as Ollama, and removing duplicate files.  
-It is designed for local, privacy-friendly use, and is easily extensible for future LLM integrations.
+# 🔮 Gideon
 
----
+### AI-Powered Research Assistant for Academic Document Management
 
-## Features
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-- **AI-powered PDF renaming**: Extracts metadata (authors, year, title, topic) and generates clean, consistent filenames.
-- **Duplicate file removal**: Quickly find and remove duplicate PDF files in a directory.
-- **File organization**: Organize files into topic-based folders based on file naming conventions.
-- **Modular architecture**: Easily add new LLM providers or agents.
-- **Rich CLI interface**: Beautiful output and flexible options.
-- **Local-first**: No cloud required; works with local LLMs like Ollama.
+[Features](#-features) • [Quick Start](#-quick-start) • [Examples](#-examples) • [Architecture](#-architecture) • [Roadmap](#-roadmap)
 
 ---
 
-## Installation
+**Gideon transforms your research workflow with AI-powered document organization, semantic search, and intelligent Q&A.**
 
-**Requirements:**
-- Python 3.11+
-- [Ollama](https://ollama.com/) (for local LLMs, optional but recommended)
+Tired of manually organizing hundreds of research papers? Let Gideon do it for you.
 
-**Install in development mode:**
+</div>
+
+---
+
+## ✨ Features
+
+### 🔍 **Semantic Search & RAG**
+Search your document collection using natural language. Ask questions and get AI-powered answers backed by your research papers.
+
 ```bash
-git clone https://github.com/yourusername/gideon.git
+gideon search ask "What are the latest advances in transformer architectures?"
+```
+
+### 🤖 **Multi-LLM Support**
+Choose the best AI model for your needs:
+- **OpenAI** (GPT-4 Turbo, GPT-4) - Fast, high-quality
+- **Anthropic** (Claude 3.5 Sonnet) - Large context, excellent reasoning
+- **Ollama** (Local models) - Privacy-first, free, offline
+
+### 📄 **Intelligent Document Management**
+- **AI-Powered Renaming**: Extract metadata (authors, year, title) and generate clean filenames
+- **Topic Classification**: Auto-categorize papers into 30+ topics
+- **Duplicate Detection**: Find and remove duplicates intelligently
+- **Auto-Organization**: Sort files into topic-based folders
+
+### 🎯 **Key Capabilities**
+
+| Feature | Description |
+|---------|-------------|
+| 🔎 **Semantic Search** | Find relevant papers using natural language queries |
+| 💬 **RAG Q&A** | Ask questions, get answers from your research collection |
+| 📊 **Smart Organization** | Auto-categorize and rename based on content |
+| 🔄 **Duplicate Detection** | Identify identical or similar documents |
+| 🏷️ **Topic Classification** | 30+ predefined academic topics |
+| 🌐 **Multi-Format Support** | PDF, Word, PowerPoint, EPUB (*coming soon*) |
+| 💾 **Local-First** | Privacy-focused with local LLM support |
+
+---
+
+## 🚀 Quick Start
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/asanchezyali/gideon.git
 cd gideon
+
+# Install dependencies
 pip install -e .
-```
 
-**Configure Gideon:**
-
-Gideon can be configured by creating a `.env` file in the project root:
-```bash
+# Configure (copy and edit .env)
 cp .env.example .env
-# Edit .env with your preferred settings
 ```
 
----
+### Configuration
 
-## Usage
+Edit `.env` with your settings:
 
-### Rename Files with AI
+```bash
+# Choose your LLM provider
+DEFAULT_LLM_SERVICE_TYPE=openai  # or: ollama, anthropic
+
+# Model selection
+DEFAULT_LLM_MODEL=gpt-4-turbo-preview
+
+# API Keys (if using cloud providers)
+OPENAI_API_KEY=your-key-here
+ANTHROPIC_API_KEY=your-key-here
+```
+
+### Usage
+
+#### 1️⃣ **Index Your Documents**
+
+```bash
+gideon search index ./research-papers/
+```
+
+#### 2️⃣ **Search Semantically**
+
+```bash
+gideon search search "attention mechanisms in neural networks" --top-k 5
+```
+
+#### 3️⃣ **Ask Questions (RAG)**
+
+```bash
+gideon search ask "What papers discuss few-shot learning?"
+```
+
+#### 4️⃣ **Rename Files with AI**
 
 ```bash
 gideon rename auto ./documents/
 ```
 
-#### With custom LLM options
+#### 5️⃣ **Organize by Topics**
 
-```bash
-gideon rename auto ./documents/ --llm-type ollama --model codellama --temperature 0.2
-```
-
-- `--llm-type`: The LLM backend to use (default: `ollama`)
-- `--model`: The model name (default: `llama2`)
-- `--temperature`: Sampling temperature for the LLM (default: `0.1`)
-
-### Remove Duplicate Files
-
-Remove duplicates in a directory:
-```bash
-gideon remove-duplicates ./documents/
-```
-
-- This will scan for duplicate PDF files and remove them, keeping only one copy of each unique file.
-
-### Organize Files
-
-Organize files into topic-based folders:
 ```bash
 gideon organize ./documents/
 ```
 
-Options:
-- `--dry-run` or `-d`: Preview changes without actually moving files
-- `--ignore` or `-i`: Comma-separated list of directory patterns to ignore (e.g. '.git,.vscode')
-
 ---
 
-## CLI Commands
+## 💡 Examples
 
-- `gideon rename auto <directory> [--llm-type TYPE] [--model MODEL] [--temperature FLOAT]`  
-  Rename PDF files in a directory using AI analysis.
-- `gideon remove-duplicates <directory>`  
-  Remove duplicate PDF files in a directory (default mode).
-- `gideon organize <directory> [--dry-run] [--ignore PATTERNS]`  
-  Organize files into topic-based folders based on file naming conventions.
+### Semantic Search
 
----
+```bash
+$ gideon search search "transformer attention mechanisms" --top-k 3
 
-## Project Structure
-
-```
-gideon/
-│
-├── src/gideon/
-│   ├── cli/           # CLI commands and entry point
-│   ├── core/          # Global configuration
-│   ├── llm/           # LLM integrations (Ollama, etc.)
-│   ├── agents/        # Specialized agents (RenameWizard, etc.)
-│   ├── services/      # File and directory services
-│   └── utils/         # Utilities and parsers
-│
-├── pyproject.toml     # Project metadata and dependencies
-└── README.md
+┏━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┓
+┃ # ┃ Document                     ┃ Similarity ┃
+┡━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━┩
+│ 1 │ Attention_Is_All_You_Need... │ 94.2%      │
+│ 2 │ BERT_Pretraining...          │ 89.7%      │
+│ 3 │ GPT3_Language_Models...      │ 87.3%      │
+└───┴──────────────────────────────┴────────────┘
 ```
 
----
+### Q&A with RAG
 
-## Configuration
+```bash
+$ gideon search ask "How do transformers handle long sequences?"
 
-Gideon can be configured using environment variables or a `.env` file in the project root. The available configuration options are:
+╭─ Answer (confidence: 91.5%) ─────────────────────────────╮
+│                                                           │
+│ Transformers handle long sequences through several       │
+│ techniques:                                               │
+│                                                           │
+│ 1. **Self-Attention Mechanism**: Allows the model to     │
+│    attend to all positions in the sequence...            │
+│                                                           │
+│ 2. **Positional Encoding**: Adds position information... │
+│                                                           │
+│ Sources:                                                  │
+│ - Attention Is All You Need (Vaswani et al., 2017)      │
+│ - Longformer (Beltagy et al., 2020)                     │
+╰───────────────────────────────────────────────────────────╯
+```
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DEFAULT_LLM_TYPE` | The default LLM backend to use | `ollama` |
-| `DEFAULT_LLM_MODEL` | The default model name | `deepseek-r1:latest` |
-| `DEFAULT_LLM_TEMPERATURE` | The default sampling temperature | `0.1` |
-| `MAX_CONTENT_LENGTH` | Maximum content length for processing | `5000` |
-| `SUPPORTED_EXTENSIONS` | File extensions that Gideon can process | `[".pdf"]` |
+### Auto-Renaming Documents
 
-An example configuration file is provided at `.env.example`.
+**Before:**
+```
+paper1.pdf
+download (3).pdf
+untitled-document-final-v2.pdf
+```
 
-## Extending
-
-- **Add a new LLM**: Implement a new service in `src/gideon/llm/`, register it in the factory.
-- **Add a new agent**: Create a new agent in `src/gideon/agents/` and wire it into the CLI.
-
----
-
-## Development
-
-- Install dev dependencies:  
-  `pip install -e .[dev]`
-- Run linter:  
-  `ruff check src/`
-- Run tests:  
-  `pytest`
-
-### Test Coverage
-- Tests for duplicate removal are located in `src/gideon/services/test_file_service.py` and use `pytest` for isolated, reliable testing.
-- Async tests for AI renaming are supported with `pytest-asyncio`.
-
----
-
-## License
-
-MIT License
+**After:**
+```
+Vaswani.2017.Attention_Is_All_You_Need.Deep_Learning.pdf
+Devlin.2018.BERT_Pretraining_Deep_Bidirectional.NLP.pdf
+Brown.2020.GPT3_Language_Models_Few_Shot.AI.pdf
+```
 
 ---
 
-## Author
+## 🏗️ Architecture
 
-Alejandro Sánchez Yalí  
-[asanchezyali@gmail.com](mailto:asanchezyali@gmail.com)
+```
+Gideon
+├── 🔍 Search Engine (ChromaDB + Embeddings)
+│   ├── Document indexing with vector embeddings
+│   ├── Semantic similarity search
+│   └── RAG-based Q&A system
+│
+├── 🤖 Multi-LLM Support
+│   ├── OpenAI (GPT-4, GPT-3.5)
+│   ├── Anthropic (Claude 3.5, Opus, Sonnet)
+│   ├── Ollama (Local models: Llama, Mistral, DeepSeek)
+│   └── LLM Router (auto-select best model)
+│
+├── 📄 Document Processing
+│   ├── PDF extraction (PyPDF2)
+│   ├── Metadata extraction
+│   ├── Topic classification (30+ categories)
+│   └── Content analysis
+│
+└── 🛠️ Utilities
+    ├── Smart duplicate detection
+    ├── File organization
+    └── Batch processing
+```
 
 ---
 
-**Note:**  
-Gideon is under active development. Contributions and feedback are welcome!
+## 🎯 Use Cases
 
-https://www.docker.com/blog/run-llms-locally/
-docker desktop enable model-runner
-docker desktop enable model-runner --tcp 12434
+### For Researchers
+- **Literature Review**: Quickly find relevant papers on a topic
+- **Paper Organization**: Auto-categorize and rename papers
+- **Knowledge Q&A**: Ask questions across your entire research collection
 
+### For Students
+- **Study Material Management**: Organize papers by subject
+- **Quick Reference**: Find specific information across documents
+- **Citation Discovery**: Find related papers automatically
+
+### For Teams
+- **Shared Knowledge Base**: Centralized document search
+- **Onboarding**: New members can query the research repository
+- **Collaboration**: Consistent naming and organization
+
+---
+
+## 🆚 Comparison
+
+| Feature | Gideon | Zotero | Mendeley | Papers |
+|---------|--------|--------|----------|--------|
+| **Semantic Search** | ✅ | ❌ | ❌ | ❌ |
+| **AI Q&A (RAG)** | ✅ | ❌ | ❌ | ❌ |
+| **Auto-Rename** | ✅ | ❌ | ⚠️ Limited | ⚠️ Limited |
+| **Local LLM** | ✅ | N/A | N/A | N/A |
+| **CLI Interface** | ✅ | ❌ | ❌ | ❌ |
+| **Free & Open Source** | ✅ | ✅ | ❌ | ❌ |
+| **Privacy-First** | ✅ | ✅ | ⚠️ | ⚠️ |
+
+---
+
+## 📚 Documentation
+
+### Commands
+
+#### Search Commands
+
+```bash
+# Index documents for semantic search
+gideon search index <directory> [--concurrent N] [--clear]
+
+# Semantic search
+gideon search search <query> [--top-k N] [--topic TOPIC] [--author AUTHOR]
+
+# Ask questions (RAG)
+gideon search ask <question> [--top-k N] [--sources/--no-sources]
+
+# Find similar documents
+gideon search similar <document> [--top-k N]
+
+# Show index statistics
+gideon search stats
+
+# Clear index
+gideon search clear [--yes]
+```
+
+#### Document Management
+
+```bash
+# Rename files with AI
+gideon rename auto <directory> [--llm-type TYPE] [--model MODEL] [--temperature FLOAT]
+
+# Remove duplicates
+gideon remove-duplicates <directory>
+
+# Organize files
+gideon organize <directory> [--dry-run] [--ignore PATTERNS]
+```
+
+---
+
+## 🗺️ Roadmap
+
+### ✅ **Phase 1: Foundation** (Completed)
+- [x] Multi-LLM support (OpenAI, Anthropic, Ollama)
+- [x] Semantic search with ChromaDB
+- [x] RAG-based Q&A
+- [x] Document renaming and organization
+- [x] Topic classification
+
+### 🚧 **Phase 2: Enhancement** (In Progress)
+- [ ] Multi-format support (Word, PowerPoint, EPUB)
+- [ ] Smart duplicate detection (exact, fuzzy, semantic)
+- [ ] Improved metadata extraction
+- [ ] Batch processing optimization
+- [ ] Web interface
+
+### 🔮 **Phase 3: Advanced Features** (Planned)
+- [ ] Research assistant chatbot
+- [ ] Literature review generator
+- [ ] Citation network analysis
+- [ ] Knowledge graph visualization
+- [ ] Collaborative features
+- [ ] Cloud synchronization
+- [ ] Mobile app
+
+---
+
+## 🤝 Contributing
+
+We love contributions! Check out our [Contributing Guide](CONTRIBUTING.md) to get started.
+
+### Development Setup
+
+```bash
+# Clone and install dev dependencies
+git clone https://github.com/asanchezyali/gideon.git
+cd gideon
+pip install -e ".[dev]"
+
+# Run tests
+pytest
+
+# Run linter
+ruff check src/
+```
+
+### Ways to Contribute
+
+- 🐛 Report bugs
+- 💡 Suggest features
+- 📝 Improve documentation
+- 🔧 Submit pull requests
+- ⭐ Star the project
+
+---
+
+## 📊 Stats
+
+<div align="center">
+
+![GitHub stars](https://img.shields.io/github/stars/asanchezyali/gideon?style=social)
+![GitHub forks](https://img.shields.io/github/forks/asanchezyali/gideon?style=social)
+![GitHub watchers](https://img.shields.io/github/watchers/asanchezyali/gideon?style=social)
+
+</div>
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- [LangChain](https://github.com/langchain-ai/langchain) - LLM framework
+- [ChromaDB](https://github.com/chroma-core/chroma) - Vector database
+- [Ollama](https://ollama.ai/) - Local LLM runtime
+- [Typer](https://github.com/tiangolo/typer) - CLI framework
+- [Rich](https://github.com/Textualize/rich) - Terminal formatting
+
+---
+
+## 💬 Community
+
+- **Discussions**: [GitHub Discussions](https://github.com/asanchezyali/gideon/discussions)
+- **Issues**: [Bug Reports & Feature Requests](https://github.com/asanchezyali/gideon/issues)
+- **Email**: [asanchezyali@gmail.com](mailto:asanchezyali@gmail.com)
+
+---
+
+## ⭐ Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=asanchezyali/gideon&type=Date)](https://star-history.com/#asanchezyali/gideon&Date)
+
+---
+
+<div align="center">
+
+**Built with ❤️ by [Alejandro Sánchez Yalí](https://github.com/asanchezyali)**
+
+If you find Gideon useful, please consider giving it a ⭐!
+
+</div>
