@@ -35,11 +35,19 @@ class ImageOCRExtractor(BaseExtractor):
             raise FileNotFoundError(f"File not found: {file_path}")
 
         try:
-            # Open image
-            image = Image.open(str(file_path))
+            # Open image with context manager to ensure proper cleanup
+            with Image.open(str(file_path)) as image:
+                # Convert RGBA to RGB if needed (tesseract doesn't handle alpha channel well)
+                if image.mode in ('RGBA', 'LA') or (image.mode == 'P' and 'transparency' in image.info):
+                    # Create white background
+                    background = Image.new('RGB', image.size, (255, 255, 255))
+                    if image.mode == 'P':
+                        image = image.convert('RGBA')
+                    background.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
+                    image = background
 
-            # Perform OCR
-            text = pytesseract.image_to_string(image, lang='eng')
+                # Perform OCR
+                text = pytesseract.image_to_string(image, lang='eng')
 
             if not text.strip():
                 return "No text detected in image"
@@ -48,11 +56,13 @@ class ImageOCRExtractor(BaseExtractor):
 
         except pytesseract.TesseractNotFoundError:
             raise ValueError(
-                "Tesseract OCR not found. Please install tesseract-ocr: "
-                "Ubuntu/Debian: sudo apt-get install tesseract-ocr "
-                "macOS: brew install tesseract "
-                "Windows: Download from https://github.com/UB-Mannheim/tesseract/wiki"
+                "Tesseract OCR not found. Please install tesseract-ocr:\n"
+                "  Ubuntu/Debian: sudo apt-get install tesseract-ocr\n"
+                "  macOS: brew install tesseract\n"
+                "  Windows: Download from https://github.com/UB-Mannheim/tesseract/wiki"
             )
+        except OSError as e:
+            raise ValueError(f"Failed to open image {file_path}: {str(e)}")
         except Exception as e:
             raise ValueError(f"Failed to extract text from image {file_path}: {str(e)}")
 
@@ -74,29 +84,38 @@ class ImageOCRExtractor(BaseExtractor):
             raise FileNotFoundError(f"File not found: {file_path}")
 
         try:
-            image = Image.open(str(file_path))
+            with Image.open(str(file_path)) as image:
+                metadata = {
+                    "title": file_path.stem,
+                    "width": image.width,
+                    "height": image.height,
+                    "format": image.format,
+                    "mode": image.mode,
+                    "file_format": "image",
+                    "file_size_bytes": file_path.stat().st_size,
+                }
 
-            metadata = {
-                "title": file_path.stem,
-                "width": image.width,
-                "height": image.height,
-                "format": image.format,
-                "mode": image.mode,
-                "file_format": "image",
-            }
-
-            # Extract EXIF data if available
-            try:
-                exif = image.getexif()
-                if exif:
-                    # Common EXIF tags
-                    metadata["exif_datetime"] = exif.get(306, "")  # DateTime
-                    metadata["exif_make"] = exif.get(271, "")  # Make
-                    metadata["exif_model"] = exif.get(272, "")  # Model
-            except:
-                pass
+                # Extract EXIF data if available
+                try:
+                    exif = image.getexif()
+                    if exif:
+                        # Common EXIF tags
+                        datetime_val = exif.get(306, "")
+                        if datetime_val:
+                            metadata["exif_datetime"] = datetime_val
+                        make_val = exif.get(271, "")
+                        if make_val:
+                            metadata["exif_make"] = make_val
+                        model_val = exif.get(272, "")
+                        if model_val:
+                            metadata["exif_model"] = model_val
+                except (AttributeError, KeyError, TypeError) as e:
+                    # EXIF not available or corrupted, ignore
+                    pass
 
             return metadata
 
+        except OSError as e:
+            raise ValueError(f"Failed to open image {file_path}: {str(e)}")
         except Exception as e:
             raise ValueError(f"Failed to extract metadata from {file_path}: {str(e)}")
